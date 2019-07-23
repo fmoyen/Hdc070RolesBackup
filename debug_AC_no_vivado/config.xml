@@ -1,0 +1,483 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>debug for Alexandre</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#cd /data/Images/tmp
+#rm *
+# cd /data/Images/
+# rm -rf tmp tmp2
+# mkdir -p tmp
+# mkdir -p tmp2
+# cd tmp
+# touch toto_primary.bin
+# touch toto_secondary.bin
+# 
+#   BINFILES=`ls /data/Images/tmp/*.bin`
+#   
+# 
+#   if [ &quot;$BINFILES&quot; == &quot;&quot; ]; then echo &quot;cannot find binfile $BINFILES&quot;;exit 1
+#   fi
+# for f in $BINFILES
+# do
+#     echo &quot;BINFILE=$f&quot;
+#     size=`ls -al $f | awk &apos;{print $5}&apos;`
+#     echo &quot;binfile=$f size=$size&quot;
+#   # if (( size &lt; 100000 ));then echo &quot;ERROR: image is too small to burn&quot;;exit 1;fi  
+# #    (( size &lt; 100000 )) &amp;&amp; die 1 &quot;image $f is too small $size to burn&quot;
+# done
+# 
+# for f in $BINFILES
+# do
+#     IMAGE=&quot;/data/Images/tmp2/&quot;`basename $f`
+#     echo &quot;COPY Image $f to $IMAGE on tmp2&quot;
+#     RC=0;rsync -tvh $f $IMAGE ; RC=$?
+#     if [ &quot;$RC&quot; -gt &quot;0&quot; ];then
+#     echo &quot;problem de rsync&quot;
+#     fi
+# done #for
+# 
+# ls -al /data/Images/tmp2/
+#  
+
+
+#!/bin/bash
+set +x                            # reduce Jenkins output
+ulimit -c unlimited               # limit core dumps
+export PATH=$PATH:/usr/local/bin  # python3 needs this path setup
+export USERHOME=`pwd`
+export SNAP_ROOT=$USERHOME/snap
+#TESTBOXES=( tul3 tul2 )               # init array of systems avail for test, w/o 8K5&amp;N250SP
+# Marennes (P8) hosts a 8k5 card in IBM Montpellier (requires a vpn access)
+# Brahma (Boston P9 9006-22p) hosts a N250SP and a AD9V3 card in IBM Montpellier (requires a vpn access)
+TESTBOXES=( brahma ) # init array of systems  DEBUG AC
+echo &quot;testboxes1=${TESTBOXES[@]}&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;LSF SETUP ...&quot;
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SUBMITTER_OSTYPE=Linux
+export LSF_ENVDIR=/home/lsfbb/prod/conf
+LSF=&quot;-P zsort&quot;
+LSF+=&quot; -M 6&quot;                      # 12GB memory
+LSF+=&quot; -C 2000&quot;                   # 2MB core file
+LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
+LSF+=&quot; -I -n 8&quot;
+
+#CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
+#CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
+CRD=AD9V3
+CL=nCL
+ACT=hls_sponge_noSDRAM
+
+echo &quot;DEBUG AC creating snap&quot;
+mkdir -p snap
+
+echo &quot;Checking Build with Card=$CRD Action=$ACT CLOUD=$CL&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Get PSL Simulation Environment ...&quot;
+rm -rf pslse
+
+#AC adding CAPI2 Variable =&gt;&gt; to do : need to be exported to next shell
+CAPI2=0
+SPI8=0
+case $CRD in
+  &apos;N250SP&apos;) CAPI2=1;;
+  &apos;AD9V3&apos;)  CAPI2=1;SPI8=1;;            
+  &apos;RCXVUP&apos;) CAPI2=1;SPI8=1;;
+  &apos;FX609&apos;)  CAPI2=1;;
+  &apos;S241&apos;)   CAPI2=1;;
+  *)        CAPI2=0;;
+esac   
+#AC adding CAPI2 Variable
+
+case $CRD in 
+  &apos;N250SP&apos;) echo &quot;cloning PSLSE $branch for PSL9&quot;
+            branch=&apos;master&apos;;  # PSLVER=8/9 merged in branch=capi2 since 05Mar2018, selected by snap_env.sh
+            ;;
+  *) 		echo &quot;cloning PSLSE $branch for PSL8&quot;
+            branch=&apos;master&apos;;  # PSLVER=8/9 merged in branch=capi2 since 05Mar2018, selected by snap_env.sh
+            ;;
+esac
+#DEBUC AC git clone -b $branch https://github.com/ibm-capi/pslse pslse
+cd ${SNAP_ROOT}
+#DEBUG ACecho &quot;export PSLSE_ROOT=$USERHOME/pslse&quot; &gt;snap_env.sh
+#DEBUG ACecho &quot;export PSL_DCP=/afs/bb/proj/fpga/framework/cards/$CRD/current/b_route_design.dcp&quot; &gt;&gt;snap_env.sh
+#DEBUG ACecho &quot;#setup: XILINX_LOCAL_USER_DATA=${XILINX_LOCAL_USER_DATA}, overwrite=no to prevent write access error in XilincTclStore (tclapp:load_apps)&quot; &gt;&gt;snap_env.sh
+#DEBUG ACecho &quot;export XILINX_LOCAL_USER_DATA=no&quot; &gt;&gt; snap_env.sh
+echo &quot;&quot;
+echo &quot;Setting up the VIVADO version&quot;
+
+# test AC to add CAPI2 cards
+# for all CAPI2 cards (but RCXVUP) we run 2018.2 and extend Timing until we optimise placement
+# for all CAPI1 cards              we run 2018.1
+case $CAPI2 in
+  1) echo &quot;export PSL9_IP_CORE=/afs/bb/proj/fpga/framework/cards/$CRD/ibm.com_CAPI_PSL9_WRAP_2.00.zip&quot; &gt;&gt;snap_env.sh
+#DEBUG AC           git submodule update --init --recursive hardware/capi2-bsp
+            cd ${SNAP_ROOT}
+            export VIV_VERSION=&quot;2018.2&quot;
+#DEBUG AC            echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
+            ;;
+  *)        export VIV_VERSION=&quot;2018.1&quot;
+#DEBUG AC            echo &quot;export TIMING_LABLIMIT=\&quot;-150\&quot;&quot; &gt;&gt; snap_env.sh
+            ;;    
+esac
+
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Vivado SETUP ...&quot;
+#export XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+#export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+#source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+echo &quot;IES_LIBS=$IES_LIBS&quot;
+echo &quot;CDS_LIC_FILE=$CDS_LIC_FILE&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Configure Image ...&quot;
+case $ACT in          # select config &amp; compile action
+  &quot;test&quot;)
+    echo &quot;*T E S T  **skip image build /test&quot;
+  	if [ &quot;$TEST_ON_HW&quot; == &quot;true&quot; ]; then 
+      RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+      if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
+      days=30;srch=&quot;&apos;fw*.bin*&apos;&quot;
+      for box in &quot;${TESTBOXES[@]}&quot;;do
+        case $box in
+          marennes)                # first remote machine tries to restart VPN, if ping doesnt work
+            bindir=&quot;/home/fpga/&quot;
+			RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach marennes from dim1
+            if [ $RC != &quot;0&quot; ]; then :
+              echo &quot;$box not reachable, retry VPN connection&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;sudo /root/fpga_vpn/stop_openvpn.sh  &amp;&amp; sleep 10||RC=$?; echo &quot;sudo stopvpn  RC=$RC&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;sudo /root/fpga_vpn/start_openvpn.sh &amp;&amp; sleep 60||RC=$?; echo &quot;sudo startvpn RC=$RC&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1||RC=$?
+            fi
+            ;;
+          brahma)                   # other remote machines should not restart VPN again (too often)
+            bindir=&quot;/home/fpga/&quot;
+			RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach Brahma from dim1
+            ;;
+          *) 
+            bindir=&quot;/opt/fpga/&quot;
+            RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+            ;;                                       
+        esac
+        if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
+        echo &quot;ssh $box find &amp; delete $srch in $bindir older than $days days&quot;
+        ssh $box &quot;find $bindir -type f -name $srch -mtime +$days -ls -delete&quot;
+        nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+        echo &quot;`date` box=$box nusers=$nusers&quot;
+      done
+    fi                          
+    exit 0                     
+    ;;
+  *)
+#DEBUG AC    make -s $CRD.$ACT.defconfig
+    ;;
+esac
+
+#REMOVED ALL XILINX VIVADO STUFFF DEBUG AC
+
+
+# when using a parallel flash we have only 1 binary file
+# when using a SPI8 flash we have 2 binary files to deal with
+
+  #BINFILES contains binary name or &quot;primary and secondary&quot; names
+  #BINFILES=`ls $SNAP_ROOT/hardware/build/Images/*.bin`
+  BINFILES=`ls /data/Images/tmp/*.bin`
+  
+#DEBUG AC  if [ &quot;$BINFILES&quot; == &quot;&quot; ]; then echo &quot;cannot find binfile $BINFILES&quot;;exit 1
+#DEBUG AC  fi
+for  f in $BINFILES
+do                   
+    size=`ls -al $f | awk &apos;{print $5}&apos;`
+    echo &quot;binfile=$f size=$size&quot;
+  # if (( size &lt; 100000 ));then echo &quot;ERROR: image is too small to burn&quot;;exit 1;fi  
+#DEBUG AC    (( size &lt; 100000 )) &amp;&amp; die 1 &quot;image $f is too small $size to burn&quot;
+    # We assign IMAGE for log purpose, it eventually takes the name of secondary if SPI8
+    IMAGE=&quot;/home/fpga/images/${CRD}/${ACT}/&quot;`basename $f` 
+done
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;test_on_hw=${TEST_ON_HW} for card=$CRD&quot;
+case $CRD:${TEST_ON_HW} in
+# AD8K5:* )  SAVE=&quot;/data/Images/AD8K5_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+# N250SP:* ) SAVE=&quot;/data/Images/N250SP_missing&quot;;  echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+  S121B:* )  SAVE=&quot;/data/Images/S121B_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+  FX609:* )  SAVE=&quot;/data/Images/FX609_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+  S241:* )   SAVE=&quot;/data/Images/S241_missing&quot;;    echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;    
+# AD9V3:* )  SAVE=&quot;/data/Images/AD9V3_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;    
+  RCXVUP:* ) SAVE=&quot;/data/Images/RCXVUP_missing&quot;;  echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+  *:false )  SAVE=&quot;/data/Images/no_test_required&quot;;echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILE $SAVE;exit 0;;
+esac
+
+#
+# Set unique target directory such that parallel builds do not disturb each other.
+# Well, we might to clean up those from time to time ...
+#
+#DEBUG AC TARGET_DIR=&quot;${JOB_NAME}-${BUILD_NUMBER}-${GIT_BRANCH}&quot;
+#TARGET_DIR=&quot;SNAP_IMG_TEST_matrix-ACT-hdl_example.NORAM-CRD_CL-AD9V3_nCL-683-origin-AD9V3_adding_or_perst_hw_fix&quot;
+TARGET_DIR=&quot;snap&quot;
+export TARGET_DIR=`echo $TARGET_DIR | sed -e &apos;s/[=,\/]/-/g&apos;`
+echo &quot;TARGET_DIR=${TARGET_DIR}&quot;
+echo &quot;Current Dir is &quot; `pwd`
+#echo &quot;************ Parent Job Data **********************************************************&quot;
+#echo &quot;--&gt; PARENT_JOB_NAME: ${PARENT_JOB_NAME}&quot;
+echo &quot;--&gt; JOB_NAME:        ${JOB_NAME}&quot;
+echo &quot;--&gt; IMAGE:           ${IMAGE}&quot;
+#echo &quot;--&gt; CARD_TO_TEST:    ${CARD_TO_TEST}&quot;
+#echo &quot;--&gt; ACTION:          ${ACTION}&quot;
+echo &quot;--&gt; GIT_Branch:      ${GIT_BRANCH}&quot;
+echo &quot;--&gt; GIT_Commit:      ${GIT_COMMIT}&quot;
+#echo &quot;************ User Input Data **********************************************************&quot;
+#echo &quot;--&gt; MY_IMAGE:        ${MY_IMAGE}&quot;
+#echo &quot;--&gt; MY_CARD:         ${MY_CARD}&quot;
+
+echo &quot;***************************************************************************************&quot;
+RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not pingable&quot;;exit 100;fi
+echo &quot;testboxes2=${TESTBOXES[@]}&quot;
+for box in &quot;${TESTBOXES[@]}&quot;;do
+  case $box in
+    marennes|brahma)
+      RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach MOP (marennes or Brahma) from dim1
+	  ;;
+    *)
+      RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # ping BOE machines from dim1
+      ;;        
+  esac
+  if [ &quot;$RC&quot; == &quot;0&quot; ]; then : 
+    echo &quot;$box ping ok&quot;;
+  else
+    for i in &quot;${TESTBOXES[@]}&quot;; do [[ $i != $box ]] &amp;&amp; new+=($i);done   # generate new test array without unreachable box
+    unset TESTBOXES;TESTBOXES=(&quot;${new[@]}&quot;);unset new                   # reassign to original array name
+    echo &quot;$box not pingable, remove from testing, remaining=${TESTBOXES[@]}&quot;
+    if [[ &quot;${TESTBOXES[@]}&quot; == &quot;&quot; ]];then echo &quot;no test machines avail anymore&quot;;exit 1;fi
+  fi
+done # for box
+echo &quot;testboxes3=${TESTBOXES[@]}&quot;
+
+function finish {  # define function to unlock in case of error, executed after registering with &quot;trap finish EXIT&quot;
+    echo &quot;RC=$?, now unlock ${LOCK} and end&quot;
+	SSH_RC=0;ssh fpga@$box rmdir ${LOCK} || SSH_RC=$?
+	echo &quot;`date` box=$box $LOCK unlock RC=$SSH_RC&quot;
+}
+echo &quot;testboxes4=${TESTBOXES[@]}&quot;
+#DEBUG AC decrease loop to 3
+maxloop=3; echo &quot;Wait (max $maxloop min) for free card=$CRD in ${TESTBOXES[@]} iam=`whoami`&quot;
+for loop in `seq 1 $maxloop`;do
+  for box in &quot;${TESTBOXES[@]}&quot;;do
+    nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+#   echo &quot;remote homespace content:&quot;; ssh $box ls -al /home/fpga
+    find_card=snap_find_card.${GIT_COMMIT}.`date +%H%M%S`.`basename $BINFILES`
+    echo  &quot;#DEBUG AC DO NOT copy $find_card to $box:/home/fpga&quot;;  # watch out &quot;single_test&quot; need to have this cp done before!
+#DEBUG AC    RC=0;scp ./software/tools/snap_find_card 
+#DEBUG AC    fpga@$box:/home/fpga/$find_card ; RC=$?
+#DEBUG AC    if [ &quot;$RC&quot; -gt &quot;0&quot; ];then echo &quot;snap_find_card on $box RC=$RC, continue anyway&quot;;fi
+    echo  &quot;#DEBUG AC : running : ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD} ...&quot;
+    found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD}`||found=$?
+    SSH_RC=0;#DEBUG AC ssh -ttq fpga@${box} rm /home/fpga/$find_card || SSH_RC=$?
+#   echo &quot;`date` removed $find_card ./from $box RC=$SSH_RC&quot;
+    hours=`date +%H`
+	echo &quot;`date` loop=$loop box=$box nusers=$nusers card=$CRD snap_find_card found=$found&quot;
+    case $found:$nusers in
+      0:*)      
+#       echo &quot;no card avail, try other box&quot;;
+        if [ $box == ${TESTBOXES[*]:(-1)} ];then echo &quot;wait...&quot;;sleep 60;fi
+        continue;;
+      [1234]:0) 
+#	    echo &quot;card avail, no user, now lock &amp; test&quot;
+		for cardid in $cards;do
+      	  LOCK=&quot;jenkins_lock_card&quot;$cardid
+		  RC=0;ssh $box &quot;mkdir ${LOCK} 2&gt;/dev/null&quot;||RC=$?
+		  if [ $RC == &quot;0&quot; ]; then :
+		    echo &quot;`date` box=$box $LOCK lock RC=$RC&quot;; 
+		    trap finish EXIT  # register finish/unlock function, after lock is set
+		    break 3
+	      else 
+		    echo &quot;box=$box $LOCK already locked, try next card&quot;
+		  fi    
+		done;;
+      *:0)      
+        echo &quot;unknown found_RC=$found from snap_find_card=$cards&quot;; 
+        exit 100;;
+      *)      
+      	if (( 9&lt;=hours &amp;&amp; hours&lt;=19 ));then
+      	  echo &quot;hours=$hours, nusers=$nusers, try other box&quot;
+          if [ $box == ${TESTBOXES[*]:(-1)} ];then echo &quot;wait...&quot;;sleep 60;fi
+          continue
+        else
+          ssh fpga@${box} who|grep -v root|grep -v fpga
+      	  echo &quot;hours=$hours, nusers=$nusers, now lock &amp; notify &amp; test&quot;
+		  for cardid in $cards;do
+      	    LOCK=&quot;jenkins_lock_card&quot;$cardid
+		    RC=0;ssh $box &quot;mkdir ${LOCK} 2&gt;/dev/null&quot;||RC=$?
+		    if [ $RC == &quot;0&quot; ]; then :
+	  	      echo &quot;`date` box=$box $LOCK lock RC=$RC&quot;; 
+	   	      trap finish EXIT  # register finish/unlock function, after lock is set
+              ssh $box wall &quot;WARNING: JENKINS TEST on FPGA CARD=$CRD ID=$cards&quot;
+		      break 3
+			else 
+			  echo &quot;box=$box $LOCK already locked, try next card&quot;
+			fi    
+          done
+        fi;;
+    esac
+  done # for box
+done #for loop
+
+#DEBUG AC removing archive
+#DEBUG ACif [ &quot;$loop&quot; == &quot;$maxloop&quot; ];then 
+  #DEBUG ACSAVE=&quot;/data/Images/card_not_avail&quot;
+  #DEBUG ACecho &quot;no card avail, copy image to $SAVE&quot;
+  #DEBUG ACcp -rp $BINFILES $SAVE            
+  #DEBUG ACexit 100
+#DEBUG ACfi
+
+ssh fpga@${box} &quot;echo ------ START of JOB on $box ----&gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;date                                 &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo JOB_NAME  : $JOB_NAME           &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Card      : $CRD[$cardid]       &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Image     : $IMAGE              &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Build No  : ${BUILD_NUMBER}     &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Git Branch: ${GIT_BRANCH}       &gt;&gt; jenkins.log&quot;
+
+trap finish EXIT  # register finish/unlock function, after lock is set
+echo &quot;DEBUG AC : !!! DO NOT !!! Copy workspace ${TARGET_DIR} to ${box}&quot;
+RC=0;
+echo &quot;running on $box :pwd&quot;
+ssh $box pwd
+echo &quot;running on $box :ls -al&quot;
+ssh $box ls -al
+#DEBUG AC rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
+RC=0
+ssh $box ls -a |grep -Fx snap
+echo &quot;fin de commande&quot;
+if [ ! $(ssh $box &quot;ls -a |grep -Fx snap&quot;) == &quot;snap&quot; ];then
+	echo &quot;remote snap dir not existing, cloning it&quot;
+    ssh $box git clone http://github.com/open-power/snap.git;RC=$?
+    else
+    echo &quot;remote snap dir exists, git pull to update it&quot;
+    ssh $box &quot;cd snap;git pull&quot;;RC=$?
+fi
+    
+# if [ &quot;$RC&quot; -gt &quot;0&quot; ];then    # DEBUG AC test always OK
+#  SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;rsync error, copy image to $SAVE&quot;;
+#  cp -rp $BINFILES $SAVE
+#echo &quot;git clone failed=&gt;exit with RC=100&quot;
+#  exit 100
+#fi
+
+echo &quot;COPY Image(s) $BINFILES to $IMAGE on $box&quot;
+ssh $box mkdir -p /home/fpga/images/${CRD}/${ACT}    # create subdirectory, if not avail yet
+
+COUNT_IMAGE=0
+for f in $BINFILES
+do
+  IMAGE[$COUNT_IMAGE]=&quot;/home/fpga/images/${CRD}/${ACT}/&quot;`basename $f`
+  echo &quot;!!! DO NOT COPY Image $f to $IMAGE on fpga@$box&quot;
+#DEBUG AC  RC=0;rsync -tvh $f fpga@$box:$IMAGE ; RC=$?
+  if [ &quot;$RC&quot; -gt &quot;0&quot; ];then 
+#DEBUG AC do not copy image    SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;rsync error, copy image to $SAVE&quot;;
+    cp -rp $f $SAVE
+    exit 100
+  fi
+  COUNT_IMAGE=`expr $COUNT_IMAGE + 1`
+done
+echo &quot;IMAGE[0]=${IMAGE[0]}&quot;
+echo &quot;IMAGE[1]=${IMAGE[1]}&quot;
+echo &quot; DEBUG AC manual file settings&quot;
+
+IMAGE[0]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_primary.bin
+IMAGE[1]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_secondary.bin
+#IMAGE[0]=/home/fpga/images/AD9V3/hdl_example.NORAM/fw_2018_1203_1235_hdl_example_noSDRAM_AD9V3_0_primary.bin
+#IMAGE[1]=/home/fpga/images/AD9V3/hdl_example.NORAM/fw_2018_1203_1235_hdl_example_noSDRAM_AD9V3_0_secondary.bin
+echo &quot;IMAGE[0]=${IMAGE[0]}&quot;
+echo &quot;IMAGE[1]=${IMAGE[1]}&quot;
+
+# echo &quot;System info ...&quot;
+# ssh fpga@${box} lsb_release -a
+
+echo &quot;assemble command&quot;
+#DEBUG AC RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+#DEBUG AC if [ ! -f $RUN ];then 
+#DEBUG AC   echo &quot;`date` Shell Script $RUN not found,Exit UNSTABLE&quot;;
+#DEBUG AC   exit 100
+#DEBUG AC fi
+echo &quot;INITING RUN&quot;
+RUN+=&quot; -D ${TARGET_DIR}&quot;
+echo &quot;J: DEBUG AC Targetdir set to ${TARGET_DIR}&quot;
+
+echo &quot;TESTING SPI8&quot;
+if [ $SPI8 -eq 0 ];then
+   if [ -z ${IMAGE} ];then RUN+=&quot; -A ALL&quot;;else RUN+=&quot; -F ${IMAGE} -A ${CRD} -C $cardid&quot;;fi
+   else
+   if [ -z ${IMAGE} ];then RUN+=&quot; -A ALL&quot;;else RUN+=&quot; -F ${IMAGE[0]} -f ${IMAGE[1]} -A ${CRD} -C $cardid&quot;;fi
+fi   
+echo &quot;RUN COMMAND = $RUN&quot;
+echo &quot;***************************************************************************************&quot;
+echo &quot;Build the software and actions on $box in $TARGET_DIR ...&quot;
+RC=0;ssh $box make -C ${TARGET_DIR} clean software actions || exit 100
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;`date` Execute Test: $RUN on $box&quot;
+RC=0;ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
+	export TERM=xterm
+	cd ${TARGET_DIR}
+	set -f
+    ${RUN}
+EOF
+echo &quot;DEBUG : Return code from test is : $RC&quot;
+# Write short log only, Clean workspace
+# Note: this lines in the log file and the lines above can be 
+ssh fpga@${box} &quot;echo Exit: $JOB_NAME RC = $RC at:\       &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;date                                     &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo ----------- EXIT -------------------&gt;&gt; jenkins.log&quot;
+
+echo &quot;`date` DEBUG : NO Clean up ${TARGET_DIR} on ${box}&quot;
+#DEBUG AC ssh -T fpga@${box} rm -rf ${TARGET_DIR}
+  
+if [ 0 -ne $RC ]; then
+  echo &quot;`date` Test failed RC = $RC, exit UNSTABLE&quot;
+  exit 100
+fi</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.22">
+      <recipients>alexandre.castellane@fr.ibm.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>

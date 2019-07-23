@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>SW+PSLSE+HW compile for Cadence ncsim, currently for just one branch</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>3</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
+      <projectUrl>https://github.com/open-power/donut/</projectUrl>
+      <displayName>donut</displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.5.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/donut</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>**</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>donut</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.0">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H H/6 * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash -xe
+
+# python3 required for test case needs this
+export PATH=$PATH:/usr/local/bin
+
+echo &quot;Starting build in `pwd` branch_name=${BRANCH_NAME} build_tag=${BUILD_TAG}&quot;
+. /afs/bb/proj/fpga/framework/ibm_settings_for_donut
+
+source ./donut/hardware/donut_settings
+export SIMULATOR=ncsim
+export PSLSE_ROOT=$PWD/pslse
+export DONUT_ROOT=$PWD/donut
+export ACTION_ROOT=$PWD/donut/hardware/action_examples/memcopy
+export DONUT_SOFTWARE_ROOT=$DONUT_ROOT/software
+export DONUT_HARDWARE_ROOT=$DONUT_ROOT/hardware
+
+echo &quot;Get and build Simulation Software PSLSE ...&quot;
+env
+rm -rf pslse
+git clone -b master https://github.com/ibm-capi/pslse pslse
+make -C pslse/afu_driver/src
+make -C pslse/pslse
+make -C pslse/libcxl
+make -C pslse/debug
+
+echo &quot;Build Donut Software ...&quot;
+env
+make -C ${DONUT_ROOT}
+
+echo &quot;Build Donut Hardware ...&quot;
+pushd .
+
+echo &quot;Prepare model setup ...&quot;
+cd ${DONUT_ROOT}/hardware # /setup
+#vivado -mode batch -source create_ip.tcl        || exit &quot;error in create_ip&quot;
+#vivado -mode batch -source create_action.tcl    || exit &quot;error in create_action&quot;
+#vivado -mode batch -source create_framework.tcl || exit &quot;error in create_framework&quot;
+
+echo &quot;Configure model ...&quot;
+pwd
+make config EXAMPLE=1
+
+echo &quot;Now finally build it ...&quot;
+SIMULATOR=ncsim make model
+
+#cd ../sim/ies
+#ln -sf ${PSLSE_ROOT}/afu_driver/src/libdpi.so 2&gt;/dev/null
+#ls /afs/vlsilab.boeblingen.ibm.com/proj/fpga/framework/ies_libs/viv2015_4/ies14.10.s14
+#ls /afs/vlsilab.boeblingen.ibm.com/proj/fpga/framework/ies_libs/viv2015_4/ies14.10.s14/*
+#./top.sh
+
+echo &quot;I am happy ;-)&quot;
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.20">
+      <recipients>jkayser@de.ibm.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.0">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource"/>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS ;-)</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE :-(</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>Pending</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+      <teamDomain>capi-snap</teamDomain>
+      <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
+      <botUser>false</botUser>
+      <room>#snap_jenkins</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>false</notifyAborted>
+      <notifyNotBuilt>false</notifyNotBuilt>
+      <notifyUnstable>false</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>false</notifyBackToNormal>
+      <notifyRepeatedFailure>false</notifyRepeatedFailure>
+      <includeTestSummary>false</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

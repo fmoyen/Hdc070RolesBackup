@@ -1,0 +1,406 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project plugin="matrix-project@1.12">
+  <actions/>
+  <description>builds and simulates many different configurations on multiple Vivado versions, no automatic trigger from GIT&#xd;
+in case of problems: please contact jkayser@de.ibm.com</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>BRANCH</name>
+          <description>Choose the branch you want to test. Please do not use wildcards!!</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+      <projectUrl>https://github.com/open-power/snap/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList">
+        <string>THROTTLE_SIM</string>
+      </categories>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>category</throttleOption>
+      <limitOneJobWithMatchingParams>true</limitOneJobWithMatchingParams>
+      <matrixOptions>
+        <throttleMatrixBuilds>false</throttleMatrixBuilds>
+        <throttleMatrixConfigurations>true</throttleMatrixConfigurations>
+      </matrixOptions>
+      <paramsToUseForLimit></paramsToUseForLimit>
+      <configVersion>1</configVersion>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/snap</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${BRANCH}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/afs/bb/proj/fpga/framework/CI_ws/SNAP_SIM_matrix_mult/${BRANCH}</customWorkspace>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>ACT</name>
+      <values>
+        <string>hdl_example.SDRAM</string>
+        <string>hdl_example.BRAM</string>
+        <string>hdl_example.NORAM</string>
+        <string>hdl_example.SDRAM.NVME</string>
+        <string>hdl_nvme_example.BRAM.NVME</string>
+        <string>hls_nvme_memcopy</string>
+        <string>hls_memcopy</string>
+        <string>hls_bfs</string>
+        <string>hls_intersect_s</string>
+        <string>hls_intersect_h</string>
+        <string>hls_hashjoin</string>
+        <string>hls_search</string>
+        <string>hls_sponge</string>
+        <string>hls_helloworld</string>
+        <string>test</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>CRD_VIV</name>
+      <values>
+        <string>ADKU3_16</string>
+        <string>ADKU3_17</string>
+        <string>ADKU3_CL</string>
+        <string>N250S_16</string>
+        <string>N250S_17</string>
+        <string>S121B_16</string>
+        <string>S121B_17</string>
+        <string>N250SP_17</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>SIM</name>
+      <values>
+        <string>irun</string>
+        <string>xsim</string>
+      </values>
+    </hudson.matrix.TextAxis>
+  </axes>
+  <combinationFilter>ACT=~&quot;hls&quot; || ACT=~&quot;hdl&quot; ||  ACT==&quot;test&quot; &amp;&amp; CRD_VIV==&quot;ADKU3_16&quot; &amp;&amp; SIM==&quot;irun&quot;</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set +x
+#!/bin/bash
+echo &quot;***********************************************************&quot;
+CRD=$(echo $CRD_VIV| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
+VIV=$(echo $CRD_VIV| cut -d&apos;_&apos; -f 2)    # chars behind first &apos;_&apos; identify Vivado version
+if [[ &quot;$VIV&quot; == &quot;CL&quot; ]];then CL=1;VIV=17;else CL=0;fi
+echo &quot;Checking Build with Card=$CRD Action=$ACT Viv=$VIV CLOUD=$CL&quot;
+NAME=$(echo $GIT_BRANCH| cut -d&apos;/&apos; -f 2 |tr &apos;[:upper:]&apos; &apos;[:lower:]&apos;) # remove origin/ from branch and translate to lowercase
+PREFIX=$(echo $NAME| cut -d&apos;_&apos; -f 1)    # chars up to first &apos;_&apos; identify need for test
+#echo &quot;name=$NAME prefix=$PREFIX&quot;
+
+#if [[ &quot;$NAME&quot; == &quot;master&quot; ] ||
+#    [ &quot;$PREFIX&quot; == &quot;rc&quot;   ] ||
+#    [ $ACT =~ $PREFIX     ] ||
+#    [ $CRD =~ $PREFIX     ]];then BSKIP=0;else BSKIP=1;fi
+BSKIP=0
+echo &quot;branch=$BRANCH git_branch=$GIT_BRANCH branch_prefix=$PREFIX SKIP=$BSKIP&quot;
+
+case &quot;$CRD:$ACT:$SIM:$VIV&quot; in
+  *:*NVME*:xsim:* )          C=&quot;NVMX&quot;;ASKIP=1;;
+  *:*nvme*:xsim:* )          C=&quot;nvmX&quot;;ASKIP=1;;
+  N250S:*NVME*:*:* )         C=&quot;SNVM&quot;;ASKIP=0;; # $CRD can be xsim, irun, default
+  N250S:*nvme*:*:* )         C=&quot;Snvm&quot;;ASKIP=0;;
+  N250SP:*:*:16 )            C=&quot;SP16&quot;;ASKIP=1;;
+  N250SP:hdl_example*:*:* )  C=&quot;SPex&quot;;ASKIP=0;;
+  N250SP:*:*:* )             C=&quot;SP&quot;  ;ASKIP=0;;
+  *:hdl_example*:*:* )       C=&quot;exmp&quot;;ASKIP=0;;
+  *:hls_memcopy:*:* )        C=&quot;memc&quot;;ASKIP=0;;
+  *:hls_bfs:*:* )            C=&quot;bfs&quot; ;ASKIP=0;;
+  *:hls_hashjoin:*:* )       C=&quot;hshj&quot;;ASKIP=0;;
+  *:hls_intersect_h:*:* )    C=&quot;inth&quot;;ASKIP=0;;
+  *:hls_intersect_s:*:* )    C=&quot;ints&quot;;ASKIP=0;;
+  *:hls_search:*:* )         C=&quot;srch&quot;;ASKIP=0;;
+  *:hls_sponge:*:* )         C=&quot;spng&quot;;ASKIP=0;;
+  *:hls_helloworld:*:* )     C=&quot;helw&quot;;ASKIP=0;;
+  *:test:*:* )               C=&quot;test&quot;;ASKIP=0;;
+  * )                        C=&quot;def&quot; ;ASKIP=0;;
+esac            
+echo &quot;card=$CRD action=$ACT Sim=$SIM VIV=$VIV case=$C SKIP=$ASKIP&quot;
+
+case &quot;$ACT&quot; in
+  test )
+    gitnames=`git ls-remote https://github.com/open-power/snap|grep &quot;refs/heads/&quot;|awk &apos;{print $2}&apos;`
+    echo &quot;gitnames=$gitnames&quot;
+    for dir in &quot;/afs/bb/proj/fpga/framework/CI_ws/SNAP_SIM_matrix_mult&quot;/*;do
+      date
+      if [ -d &quot;$dir&quot; ];then
+        branch=&quot;refs/heads/&quot;`basename $dir`
+        if [[ &quot;$gitnames&quot; =~ &quot;$branch&quot; ]];then echo &quot;branch=$branch found in gitnames, keep dir=$dir&quot;
+        else 
+          echo &quot;branch=$branch not found in gitnames, delete dir=$dir&quot;
+          rm -rf $dir
+        fi
+      fi
+    done
+    date
+    DSKIP=0;;
+  *&quot;hls_intersect&quot;* ) 
+    if [ -f snap/defconfig/$CRD.hls_intersect.defconfig ];then DSKIP=0
+    else 
+      echo &quot;$CRD.hls_intersect.defconfig does not exist&quot;
+      ls snap/defconfig/
+      DSKIP=1
+    fi;;  
+  * )          
+    if [ -f snap/defconfig/$CRD.$ACT.defconfig ];then DSKIP=0
+    else 
+      echo &quot;$CRD.$ACT.defconfig does not exist&quot;
+      ls snap/defconfig/
+      DSKIP=1
+    fi;;  
+esac
+echo &quot;defconfig SKIP=$DSKIP&quot;
+
+AFSused=`fs lq /afs/bb/proj/fpga/framework/CI_ws/SNAP_SIM_matrix_mult/|grep -v Used|awk &apos;{print $4}&apos;|sed &apos;s/%//g&apos;|sed &apos;s/&lt;//g&apos;`
+echo &quot;AFS spaced currently used=${AFSused}%&quot;
+if [ &quot;$AFSused&quot; -gt &quot;90&quot; ];then
+  echo &quot;ERROR: AFS space is used up ${AFSused}%, stopping additional builds&quot;
+  exit 1
+  else if(( AFSused &gt; 70 ));then echo &quot;WARNING: AFS space is used up ${AFSused}%&quot;;fi
+fi
+
+if [ &quot;$ASKIP&quot; == &quot;1&quot; ] || [ &quot;$DSKIP&quot; == &quot;1&quot; ] || [ &quot;$BSKIP&quot; == &quot;1&quot; ] ;then SKIP=1;else SKIP=0;fi
+echo &quot;SKIP=$SKIP&quot; &gt;export_props.properties
+echo &quot;properties passed to next shell:&quot;
+cat export_props.properties
+echo &quot;***********************************************************&quot;</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.1.5">
+      <info>
+        <propertiesFilePath>export_props.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.6">
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+        <token>$SKIP</token>
+      </condition>
+      <buildStep class="org.jenkins_ci.plugins.fail_the_build.FixResultBuilder" plugin="fail-the-build-plugin@1.0">
+        <defaultResultName>ABORTED</defaultResultName>
+        <success></success>
+        <unstable></unstable>
+        <failure></failure>
+        <aborted></aborted>
+      </buildStep>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <hudson.tasks.Shell>
+      <command>set +x                           # reduce Jenkins output
+ulimit -c unlimited              # limit core dumps
+export PATH=$PATH:/usr/local/bin # python3 needs this path setup
+export USERHOME=`pwd`
+export SNAP_ROOT=$USERHOME/snap
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;LSF SETUP ...&quot;
+ulimit -c unlimited
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SUBMITTER_OSTYPE=Linux
+export LSF_ENVDIR=/home/lsfbb/prod/conf
+LSF=&quot;-P zsort&quot;
+LSF+=&quot; -M 2&quot;                     # GB memory
+LSF+=&quot; -C 2000&quot;                  # KB core file
+LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
+LSF+=&quot; -I -n 4 &quot;				 # number of processors
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Get PSL Simulation Environment ...&quot;
+CRD=$(echo $CRD_VIV| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
+VIV=$(echo $CRD_VIV| cut -d&apos;_&apos; -f 2)    # chars behind first &apos;_&apos; identify Vivado version
+if [[ &quot;$VIV&quot; == &quot;CL&quot; ]];then CL=1;VIV=17;else CL=0;fi
+echo &quot;crd_viv=$CRD_VIV Card=$CRD Viv=$VIV Sim=$SIM CLOUD=$CL&quot;
+rm -rf pslse
+case $CRD in 
+  &apos;N250SP&apos;) 
+            export PSLVER=9;branch=&apos;capi2&apos;; echo &quot;cloning PSLSE $branch for PSL9&quot; # PSL8 and PSL9 merged in branch=capi2 since 12dec2017
+            ;;
+  *) 
+#           branch=&apos;master&apos;; echo &quot;cloning PSLSE $branch for PSL8&quot;
+            branch=&apos;v3.1&apos;; echo &quot;cloning PSLSE $branch for PSL8&quot;                  # tempfix see issues #98/99/
+            ;;
+esac
+git clone -b $branch https://github.com/ibm-capi/pslse pslse  
+cd ${SNAP_ROOT}
+echo &quot;export PSLSE_ROOT=$USERHOME/pslse&quot; &gt;snap_env.sh
+echo &quot;#PSL_DCP not included in Simulation, replaced anyhow by PSLSE&quot; &gt;&gt;snap_env.sh
+echo &quot;#export PSL_DCP=/afs/bb/proj/fpga/framework/cards/$CRD/current/b_route_design.dcp&quot; &gt;&gt;snap_env.sh
+echo &quot;export PSL4N250SP_ROOT=/afs/bb/proj/fpga/framework/cards/N250SP/psl4n250sp&quot; &gt;&gt;snap_env.sh
+echo &quot;#setup: XILINX_LOCAL_USER_DATA=${XILINX_LOCAL_USER_DATA}, overwrite=no to prevent write access error in XilincTclStore (tclapp:load_apps)&quot; &gt;&gt;snap_env.sh
+echo &quot;export XILINX_LOCAL_USER_DATA=no&quot; &gt;&gt; snap_env.sh
+
+echo &quot;****************************************************************************************&quot;
+#case $CRD:$ACT in 
+#  N250SP:*)		export VIV_VERSION=&quot;2017.4&quot;; export IES_VERSION=&quot;15.20.s18&quot;;;
+#  *:hdl_example*)	export VIV_VERSION=&quot;2017.4&quot;; export IES_VERSION=&quot;15.20.s18&quot;;;  # test 2017.4 for selected configs
+# *) 				export VIV_VERSION=&quot;2016.4&quot;; export IES_VERSION=&quot;15.10.s19&quot;;;    
+#esac
+case $VIV in                                                                       # test multiple Vivado versions in one build
+  17)				export VIV_VERSION=&quot;2017.4&quot;; export IES_VERSION=&quot;15.20.s18&quot;;; 
+  *) 				export VIV_VERSION=&quot;2016.4&quot;; export IES_VERSION=&quot;15.10.s19&quot;;;    
+esac
+# export VIV_VERSION=&quot;2017.4&quot;; export IES_VERSION=&quot;15.20.s18&quot;     # same version for all configs
+
+echo &quot;Vivado SETUP ...&quot;
+export XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+case $SIM in
+  &apos;irun&apos;|&apos;IRUN&apos; ) echo &quot;Cadence SETUP ...&quot;
+    export CDS_INST_DIR=/afs/bb/proj/cte/tools/cds/Incisiv/${IES_VERSION}
+    export         PATH=$CDS_INST_DIR/tools/bin:$PATH
+    export     IES_LIBS=/afs/bb/proj/fpga/framework/ies_libs/viv${VIV_VERSION}/ies${IES_VERSION}
+    export CDS_LIC_FILE=5280@hdlic10.boeblingen.de.ibm.com:5280@hdlic11.boeblingen.de.ibm.com
+    export LD_LIBRARY_PATH=$CDS_INST_DIR/tools/lib/64bit:$LD_LIBRARY_PATH
+#   echo &quot;export    LD_LIBRARY_PATH=$CDS_INST_DIR/tools/lib/64bit:$LD_LIBRARY_PATH&quot; &gt;&gt; snap_env.sh
+    if [ -f &quot;$IES_LIBS/cds.lib&quot; ]; then
+      echo &quot;IES_LIBS found in $IES_LIBS&quot;
+    else
+      echo &quot;WARNING: cannot find IES_LIBS=$IES_LIBS, Cadence compilation won&apos;t work&quot;
+      exit 1
+    fi;;
+esac
+
+case $ACT in 
+  *&quot;nvme&quot;*|*&quot;NVME&quot;*) echo &quot;Denali SETUP ...&quot;
+#   export DENALI=/afs/bb/proj/cte/tools/cds/VIPCAT/11.30.037/tools.lnx86/denali_64bit
+#   export CDS_LIC_FILE=5280@auslnxlic01.austin.ibm.com
+    echo &quot;export DENALI=/afs/bb/proj/cte/tools/cds/VIPCAT/11.30.037/tools.lnx86/denali_64bit&quot; &gt;&gt;snap_env.sh
+    echo &quot;export CDS_LIC_FILE=5280@auslnxlic01.austin.ibm.com&quot;                                &gt;&gt;snap_env.sh
+    ;;
+esac
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Build Simulation Model ...&quot;
+case $ACT in                    # select config &amp; compile action
+  &apos;test&apos;) echo &quot;test exit 0&quot;;exit 0;; # just exit 
+  &apos;hls_intersect_h&apos;)  
+    make $CRD.hls_intersect.defconfig
+    source ./snap_env.sh        # execute to exploit ACTION_ROOT
+    echo &quot;action compile intersect hash&quot;;
+    make -C ${ACTION_ROOT} clean config_h
+    ;;
+  &apos;hls_intersect_s&apos;)  
+    make $CRD.hls_intersect.defconfig
+    source ./snap_env.sh        # execute to exploit ACTION_ROOT
+    echo &quot;action compile intersect sort&quot;;
+    make -C ${ACTION_ROOT} clean config_s
+    ;;
+  *) 
+#   echo &quot;pwd:&quot;;pwd
+#   echo &quot;pwd content:&quot;;ls
+#   echo &quot;defconfig:&quot;;ls defconfig/
+    make $CRD.$ACT.defconfig
+    ;;
+esac
+case $CL in
+  1) echo &quot;prepare cloud build&quot;  
+     echo &quot;ENABLE_PRFLOW=y&quot; &gt;&gt; .snap_config
+     echo &quot;export DCP_ROOT=${SNAP_ROOT}/dcp&quot; &gt;&gt; snap_env.sh
+     make oldconfig;;
+  *);;
+esac
+case $SIM in
+  &apos;xsim&apos;|&apos;XSIM&apos; ) echo &quot;export SIMULATOR=xsim&quot; &gt;&gt; .snap_config.sh;;   # overwrite simulator
+  &apos;irun&apos;|&apos;IRUN&apos; ) echo &quot;export SIMULATOR=irun&quot; &gt;&gt; .snap_config.sh;;
+esac
+# execute with LSF, SNAP_ROOT must reside in AFS
+#echo &quot;PATH=$PATH&quot;
+#which irun
+bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}_model&quot; &quot;make model&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Run Simulation ...&quot;
+cd ${SNAP_ROOT}/hardware/sim
+##### enable SW trace
+# export SNAP_TRACE=0xf
+##### execute locally
+# ./run_sim -list testlist.sh -noaet
+##### execute on AFS with LSF, report error as unstable build
+case $SIM in
+  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
+  &apos;irun&apos;|&apos;IRUN&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -irun -list testlist.sh -noaet&quot;||exit 100;;
+  *)              bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
+esac</command>
+      <unstableReturn>100</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>false</cleanWhenUnstable>
+      <cleanWhenFailure>false</cleanWhenFailure>
+      <cleanWhenNotBuilt>false</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>480</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>#${BUILD_NUMBER}}-${GIT_BRANCH}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+    <touchStoneCombinationFilter>ACT==&quot;test&quot; &amp;&amp; CRD_VIV==&quot;ADKU3_16&quot; &amp;&amp; SIM==&quot;irun&quot;</touchStoneCombinationFilter>
+    <touchStoneResultCondition>
+      <name>UNSTABLE</name>
+      <ordinal>1</ordinal>
+      <color>YELLOW</color>
+      <completeBuild>true</completeBuild>
+    </touchStoneResultCondition>
+  </executionStrategy>
+  <childCustomWorkspace>${COMBINATION}</childCustomWorkspace>
+</matrix-project>

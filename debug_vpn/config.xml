@@ -1,0 +1,228 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>debug for VPN</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#cd /data/Images/tmp
+#rm *
+# cd /data/Images/
+# rm -rf tmp tmp2
+# mkdir -p tmp
+# mkdir -p tmp2
+# cd tmp
+# touch toto_primary.bin
+# touch toto_secondary.bin
+# 
+#   BINFILES=`ls /data/Images/tmp/*.bin`
+#   
+# 
+#   if [ &quot;$BINFILES&quot; == &quot;&quot; ]; then echo &quot;cannot find binfile $BINFILES&quot;;exit 1
+#   fi
+# for f in $BINFILES
+# do
+#     echo &quot;BINFILE=$f&quot;
+#     size=`ls -al $f | awk &apos;{print $5}&apos;`
+#     echo &quot;binfile=$f size=$size&quot;
+#   # if (( size &lt; 100000 ));then echo &quot;ERROR: image is too small to burn&quot;;exit 1;fi  
+# #    (( size &lt; 100000 )) &amp;&amp; die 1 &quot;image $f is too small $size to burn&quot;
+# done
+# 
+# for f in $BINFILES
+# do
+#     IMAGE=&quot;/data/Images/tmp2/&quot;`basename $f`
+#     echo &quot;COPY Image $f to $IMAGE on tmp2&quot;
+#     RC=0;rsync -tvh $f $IMAGE ; RC=$?
+#     if [ &quot;$RC&quot; -gt &quot;0&quot; ];then
+#     echo &quot;problem de rsync&quot;
+#     fi
+# done #for
+# 
+# ls -al /data/Images/tmp2/
+#  
+
+
+#!/bin/bash
+set +x                            # reduce Jenkins output
+ulimit -c unlimited               # limit core dumps
+export PATH=$PATH:/usr/local/bin  # python3 needs this path setup
+export USERHOME=`pwd`
+export SNAP_ROOT=$USERHOME/snap
+#TESTBOXES=( tul3 tul2 )               # init array of systems avail for test, w/o 8K5&amp;N250SP
+# Marennes (P8) hosts a 8k5 card in IBM Montpellier (requires a vpn access)
+# Brahma (Boston P9 9006-22p) hosts a N250SP and a AD9V3 card in IBM Montpellier (requires a vpn access)
+TESTBOXES=( tul1 marennes brahma ) # init array of systems  DEBUG AC
+echo &quot;testboxes1=${TESTBOXES[@]}&quot;
+
+ACT=test  # forcing test to reset vpn
+TEST_ON_HW=true
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Configure Image ...&quot;
+case $ACT in          # select config &amp; compile action
+  &quot;test&quot;)
+    echo &quot;*T E S T  **skip image build /test&quot;
+  	if [ &quot;$TEST_ON_HW&quot; == &quot;true&quot; ]; then 
+      RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+      if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
+      days=30;srch=&quot;&apos;fw*.bin*&apos;&quot;
+      for box in &quot;${TESTBOXES[@]}&quot;;do
+        case $box in
+          marennes)                # first remote machine tries to restart VPN, if ping doesnt work
+            bindir=&quot;/home/fpga/&quot;
+			RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach marennes from dim1
+            if [ $RC != &quot;0&quot; ]; then :
+              echo &quot;$box not reachable, retry VPN connection&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;sudo /root/fpga_vpn/stop_openvpn.sh  &amp;&amp; sleep 10||RC=$?; echo &quot;sudo stopvpn  RC=$RC&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;sudo /root/fpga_vpn/start_openvpn.sh &amp;&amp; sleep 60||RC=$?; echo &quot;sudo startvpn RC=$RC&quot;
+              echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+              RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1||RC=$?
+            fi
+            ;;
+          brahma)                   # other remote machines should not restart VPN again (too often)
+            bindir=&quot;/home/fpga/&quot;
+			RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach Brahma from dim1
+            ;;
+          *) 
+            bindir=&quot;/opt/fpga/&quot;
+            RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+            ;;                                       
+        esac
+        if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
+        echo &quot;ssh $box find &amp; delete $srch in $bindir older than $days days&quot;
+        ssh $box &quot;find $bindir -type f -name $srch -mtime +$days -ls -delete&quot;
+        nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+        echo &quot;`date` box=$box nusers=$nusers&quot;
+      done
+    fi                          
+    exit 0                     
+    ;;
+  *)
+#DEBUG AC    make -s $CRD.$ACT.defconfig
+    ;;
+esac
+
+echo &quot;***************************************************************************************&quot;
+RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not pingable&quot;;exit 100;fi
+echo &quot;testboxes2=${TESTBOXES[@]}&quot;
+for box in &quot;${TESTBOXES[@]}&quot;;do
+  case $box in
+    marennes|brahma)
+      RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach MOP (marennes or Brahma) from dim1
+	  ;;
+    *)
+      RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # ping BOE machines from dim1
+      ;;        
+  esac
+  if [ &quot;$RC&quot; == &quot;0&quot; ]; then : 
+    echo &quot;$box ping ok&quot;;
+  else
+    for i in &quot;${TESTBOXES[@]}&quot;; do [[ $i != $box ]] &amp;&amp; new+=($i);done   # generate new test array without unreachable box
+    unset TESTBOXES;TESTBOXES=(&quot;${new[@]}&quot;);unset new                   # reassign to original array name
+    echo &quot;$box not pingable, remove from testing, remaining=${TESTBOXES[@]}&quot;
+    if [[ &quot;${TESTBOXES[@]}&quot; == &quot;&quot; ]];then echo &quot;no test machines avail anymore&quot;;exit 1;fi
+  fi
+done # for box
+echo &quot;testboxes3=${TESTBOXES[@]}&quot;
+
+function finish {  # define function to unlock in case of error, executed after registering with &quot;trap finish EXIT&quot;
+    echo &quot;RC=$?, now unlock ${LOCK} and end&quot;
+	SSH_RC=0;ssh fpga@$box rmdir ${LOCK} || SSH_RC=$?
+	echo &quot;`date` box=$box $LOCK unlock RC=$SSH_RC&quot;
+}
+echo &quot;testboxes4=${TESTBOXES[@]}&quot;
+maxloop=1; echo &quot;Wait (max $maxloop min) for free card=$CRD in ${TESTBOXES[@]} iam=`whoami`&quot;
+for loop in `seq 1 $maxloop`;do
+  for box in &quot;${TESTBOXES[@]}&quot;;do
+    nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+#   echo &quot;remote homespace content:&quot;; ssh $box ls -al /home/fpga
+    find_card=snap_find_card.${GIT_COMMIT}.`date +%H%M%S`.`basename $BINFILES`
+    echo  &quot;#DEBUG AC DO NOT copy $find_card to $box:/home/fpga&quot;;  # watch out &quot;single_test&quot; need to have this cp done before!
+#DEBUG AC    RC=0;scp ./software/tools/snap_find_card 
+#DEBUG AC    fpga@$box:/home/fpga/$find_card ; RC=$?
+#DEBUG AC    if [ &quot;$RC&quot; -gt &quot;0&quot; ];then echo &quot;snap_find_card on $box RC=$RC, continue anyway&quot;;fi
+    echo  &quot;#DEBUG AC : running : ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD} ...&quot;
+    found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD}`||found=$?
+    SSH_RC=0;#DEBUG AC ssh -ttq fpga@${box} rm /home/fpga/$find_card || SSH_RC=$?
+#   echo &quot;`date` removed $find_card ./from $box RC=$SSH_RC&quot;
+    hours=`date +%H`
+	echo &quot;`date` loop=$loop box=$box nusers=$nusers card=$CRD snap_find_card found=$found&quot;
+    case $found:$nusers in
+      0:*)      
+#       echo &quot;no card avail, try other box&quot;;
+        if [ $box == ${TESTBOXES[*]:(-1)} ];then echo &quot;wait...&quot;;sleep 60;fi
+        continue;;
+      [1234]:0) 
+#	    echo &quot;card avail, no user, now lock &amp; test&quot;
+		for cardid in $cards;do
+      	  LOCK=&quot;jenkins_lock_card&quot;$cardid
+		  RC=0;ssh $box &quot;mkdir ${LOCK} 2&gt;/dev/null&quot;||RC=$?
+		  if [ $RC == &quot;0&quot; ]; then :
+		    echo &quot;`date` box=$box $LOCK lock RC=$RC&quot;; 
+		    trap finish EXIT  # register finish/unlock function, after lock is set
+		    break 3
+	      else 
+		    echo &quot;box=$box $LOCK already locked, try next card&quot;
+		  fi    
+		done;;
+      *:0)      
+        echo &quot;unknown found_RC=$found from snap_find_card=$cards&quot;; 
+        exit 100;;
+      *)      
+      	if (( 9&lt;=hours &amp;&amp; hours&lt;=19 ));then
+      	  echo &quot;hours=$hours, nusers=$nusers, try other box&quot;
+          if [ $box == ${TESTBOXES[*]:(-1)} ];then echo &quot;wait...&quot;;sleep 60;fi
+          continue
+        else
+          ssh fpga@${box} who|grep -v root|grep -v fpga
+      	  echo &quot;hours=$hours, nusers=$nusers, now lock &amp; notify &amp; test&quot;
+		  for cardid in $cards;do
+      	    LOCK=&quot;jenkins_lock_card&quot;$cardid
+		    RC=0;ssh $box &quot;mkdir ${LOCK} 2&gt;/dev/null&quot;||RC=$?
+		    if [ $RC == &quot;0&quot; ]; then :
+	  	      echo &quot;`date` box=$box $LOCK lock RC=$RC&quot;; 
+	   	      trap finish EXIT  # register finish/unlock function, after lock is set
+              ssh $box wall &quot;WARNING: JENKINS TEST on FPGA CARD=$CRD ID=$cards&quot;
+		      break 3
+			else 
+			  echo &quot;box=$box $LOCK already locked, try next card&quot;
+			fi    
+          done
+        fi;;
+    esac
+  done # for box
+done #for loop
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.22">
+      <recipients>alexandre.castellane@fr.ibm.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>

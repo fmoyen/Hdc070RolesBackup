@@ -1,0 +1,298 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>SNAP Image or Software test on P8 hardware.&#xd;
+Test runs on N250S and ADKU3 Card. This can flash a new Image.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.copyartifact.CopyArtifactPermissionProperty plugin="copyartifact@1.39">
+      <projectNameList>
+        <string>*</string>
+      </projectNameList>
+    </hudson.plugins.copyartifact.CopyArtifactPermissionProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PARENT_JOB_NAME</name>
+          <description>Select Upstream Project</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>SNAP_Test_ON_tul2</string>
+              <string>SNAP_IMG_KU3_DDR3</string>
+              <string>SNAP_IMG_FGT_DDR4</string>
+              <string>SNAP_IMG_Matrix</string>
+              <string>SNAP_Software</string>
+              <string>SNAP_IMG_KU3_DDR3_HLS_MEMCOPY-2016</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>MY_CARD</name>
+          <description>Select Card to Test (ADKU3/N250S/ALL)</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>NO_CARD</string>
+              <string>ADKU3</string>
+              <string>N250S</string>
+              <string>ALL</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MY_IMAGE</name>
+          <description>Enter a valid Bin File (FPGA SNap Image) to Test. This file must be on Test machine tul2. Enter a something like &quot;/tmp/abc.bin&quot;</description>
+          <defaultValue>NO_FILE</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CONFIG</name>
+          <description>configuration string from Matrix build job</description>
+          <defaultValue>empty</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>1</maxConcurrentPerNode>
+      <maxConcurrentTotal>1</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>true</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.6.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/snap</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>origin/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># This is the default. This file gets overwritten if the upstream project
+# Creates this file.
+# Default to: Test Software on ALL Cards, Image is not set.
+set +x
+#NOW=`date`
+echo &quot;# File created by SNAP_Test_ON_tul2 Project&quot; &gt; my_properties
+#echo &quot;MY_CARD=${MY_CARD}&quot;           &gt;&gt; my_properties
+#echo &quot;MY_IMAGE=${MY_IMAGE}&quot;         &gt;&gt; my_properties
+#echo &quot;IMAGE=${IMAGE}&quot;               &gt;&gt; my_properties
+#echo &quot;CARD_TO_TEST=${CARD_TO_TEST}&quot; &gt;&gt; my_properties
+#echo &quot;DATE=${NOW}&quot;                  &gt;&gt; my_properties
+#echo &quot;GIT_BRANCH=${GIT_BRANCH}&quot;     &gt;&gt; my_properties
+#echo &quot;PROJECT_NAME=${PROJECT_NAME}&quot; &gt;&gt; my_properties
+#echo &quot;GIT_COMMIT=${GIT_COMMIT}&quot;     &gt;&gt; my_properties
+#echo &quot;BUILD_NUMBER=${BUILD_NUMBER}&quot; &gt;&gt; my_properties
+#echo &quot;# End of File #&quot;              &gt;&gt; my_properties</command>
+    </hudson.tasks.Shell>
+    <hudson.plugins.copyartifact.CopyArtifact plugin="copyartifact@1.39">
+      <project>SNAP_IMG_Matrix</project>
+      <filter>my_properties</filter>
+      <target></target>
+      <excludes></excludes>
+      <selector class="hudson.plugins.copyartifact.TriggeredBuildSelector">
+        <upstreamFilterStrategy>UseGlobalSetting</upstreamFilterStrategy>
+        <allowUpstreamDependencies>false</allowUpstreamDependencies>
+      </selector>
+      <flatten>true</flatten>
+      <optional>true</optional>
+      <doNotFingerprintArtifacts>true</doNotFingerprintArtifacts>
+    </hudson.plugins.copyartifact.CopyArtifact>
+    <hudson.tasks.Shell>
+      <command>set +x
+echo &quot;* copy my_properties from the subdirectory named by CONFIG *****************************************&quot;
+echo &quot;CONFIG                 = $CONFIG&quot;
+echo &quot;BUILD_DISPLAY_NAME     = $BUILD_DISPLAY_NAME&quot;
+echo &quot;PARENT_JOB_NAME        = $PARENT_JOB_NAME&quot;
+echo &quot;New BUILD_DISPLAY_NAME = $BUILD_DISPLAY_NAME&quot;
+echo &quot;PROJECT_NAME           = $PROJECT_NAME&quot;
+echo &quot;PROJECT_DISPAY_NAME    = $PROJECT_DISPLAY_NAME&quot;
+case $CONFIG in
+  *&quot;Matrix&quot;*)   
+    dir=$(basename &quot;$CONFIG&quot;)
+    echo &quot;copy my_properties from matrix dir=$dir&quot;
+    cp $dir/my_properties .
+    ;;
+  &quot;&quot;) echo &quot;CONFIG not defined, using default my_properties&quot;;;
+  *)  echo &quot;using my_properties from $CONFIG&quot;;;
+esac
+echo &quot;directory structure: ******&quot;
+ls -al
+echo &quot;properties content: *********&quot;
+cat my_properties</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.1.3">
+      <info>
+        <propertiesFilePath>my_properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <hudson.tasks.Shell>
+      <command>set +x
+echo &quot;***************************************************************************************&quot;
+TESTBOX=tul2
+#
+# Set unique target directory such that parallel builds do not disturb each other.
+# Well, we might to clean up those from time to time ...
+#
+TARGET_DIR=&quot;${JOB_NAME}-${GIT_BRANCH}-${BUILD_NUMBER}&quot;
+export TARGET_DIR=`echo $TARGET_DIR | sed -e &apos;s/\//-/g&apos;`
+echo &quot;TARGET_DIR=${TARGET_DIR}&quot;
+echo &quot;Current Dir is &quot; `pwd`
+echo &quot;************ Parent Job Data **********************************************************&quot;
+echo &quot;--&gt; PARENT_JOB_NAME: ${PARENT_JOB_NAME}&quot;
+echo &quot;--&gt; JOB_NAME:        ${JOB_NAME}&quot;
+echo &quot;--&gt; IMAGE:           ${IMAGE}&quot;
+echo &quot;--&gt; CARD_TO_TEST:    ${CARD_TO_TEST}&quot;
+echo &quot;--&gt; ACTION:          ${ACTION}&quot;
+echo &quot;--&gt; GIT_Branch:      ${GIT_BRANCH}&quot;
+echo &quot;--&gt; GIT_Commit:      ${GIT_COMMIT}&quot;
+echo &quot;************ User Input Data **********************************************************&quot;
+echo &quot;--&gt; MY_IMAGE:        ${MY_IMAGE}&quot;
+echo &quot;--&gt; MY_CARD:         ${MY_CARD}&quot;
+echo &quot;***************************************************************************************&quot;
+
+if [ &quot;$ACTION&quot; == &quot;test&quot; ];then echo &quot;DEBUG EXIT&quot;; exit 0;fi   # for debug
+
+# Check if MY_IMAGE was set by user via input parm
+if [ $MY_IMAGE != &quot;NO_FILE&quot; ]; then
+	IMAGE=${MY_IMAGE}
+    echo &quot;Using User Image: ${IMAGE}&quot;
+fi
+if [ $MY_CARD != &quot;NO_CARD&quot; ]; then
+	CARD_TO_TEST=${MY_CARD}
+    echo &quot;Using User Card: ${CARD_TO_TEST}&quot;
+fi
+
+echo &quot;Make sure i can continue, Wait until ${TESTBOX} is free&quot;
+while [ 1 ]; do
+	nusers=`ssh fpga@${TESTBOX} who|grep -v root|wc -l`
+	if [ 0 -eq $nusers ]; then
+    	echo &quot;${nusers} Users Logged on, Starting test at `date`&quot;
+        break;
+    fi
+	echo &quot;${nusers} Users except root logged on .... Waiting .... `date`&quot;
+	sleep 20
+done
+echo &quot;Copy ${TARGET_DIR} to ${TESTBOX}&quot;
+rsync -az --delete snap/ fpga@${TESTBOX}:${TARGET_DIR}
+
+# echo &quot;System info ...&quot;
+# ssh fpga@${TESTBOX} lsb_release -a
+
+RUN=&quot;./actions/scripts/snap_jenkins.sh -D ${TARGET_DIR}&quot;
+if [ ! -z ${IMAGE} ]; then
+	RUN=$RUN&quot; -F ${IMAGE}&quot;
+fi
+if [ -z ${CARD_TO_TEST} ]; then
+	RUN=$RUN&quot; -A ALL&quot;
+else
+	RUN=$RUN&quot; -A ${CARD_TO_TEST}&quot;
+fi
+
+if [ ! -f &quot;./snap/actions/scripts/snap_jenkins.sh&quot; ]; then
+	echo &quot;I can not execute $RUN&quot;
+	echo &quot;Shell Script not found, Exit OK&quot;
+    exit 100
+fi
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Build the software and actions on $TESTBOX ...&quot;
+echo &quot;***************************************************************************************&quot;
+ssh fpga@${TESTBOX} make -C ${TARGET_DIR} software actions
+
+echo &quot;***************************************************************************************&quot;
+echo &quot; Execute Test: $RUN on $TESTBOX ...&quot;
+echo &quot;***************************************************************************************&quot;
+
+ssh -T fpga@${TESTBOX} &lt;&lt; EOF
+	export TERM=xterm
+	cd ${TARGET_DIR}
+	set -f; ${RUN}
+EOF
+
+RC=$?
+
+echo &quot;***************************************************************************************&quot;
+echo &quot; SUCCUESS: Wrap $TESTBOX results with RC=${RC}...&quot;
+echo &quot;***************************************************************************************&quot;
+
+#ssh fpga@${TESTBOX} &lt;&lt; EOF
+#    dmesg -T &gt; ${TARGET_DIR}/dmesg_after_test.txt
+#    echo &quot;saving results to ${TARGET_DIR}.tar.gz&quot;
+#    tar cfz ${TARGET_DIR}.tar.gz ${TARGET_DIR}
+#    echo &quot;.... rm -rf ${TARGET_DIR}&quot;
+#    rm -rf ${TARGET_DIR}
+#EOF
+
+echo &quot;Clean up ${TARGET_DIR} on ${TESTBOX}&quot;
+ssh -T fpga@${TESTBOX} &lt;&lt; EOF
+	rm -rf ${TARGET_DIR}
+EOF
+
+echo &quot;Leave Jenkins&quot;
+echo &quot;      ${TARGET_DIR} on ${TESTBOX}&quot;</command>
+      <unstableReturn>100</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.0">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource"/>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS ${CONFIG}</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>Test on TUL 2 is PENDING</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.34">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>#${BUILD_NUMBER} ${GIT_BRANCH} ${CONFIG}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

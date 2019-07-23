@@ -1,0 +1,233 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Build check on an old RHEL6.4 x86 installation. We try here to generate a bitstream, that can take a while.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>3</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+      <projectUrl>https://github.com/open-power/snap/</projectUrl>
+      <displayName>donut</displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/snap</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H 0-8/4 * * *
+H 18-23/4 * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#set +x
+ulimit -c unlimited
+
+echo &apos;****************************************************************************************&apos;
+echo &apos;COPYING DATA to AFS&apos;
+echo &apos;****************************************************************************************&apos;
+export   HOMEDIR=`pwd`
+export  TESTNAME=`basename $HOMEDIR`
+export CI_WS_DIR=/afs/bb/proj/fpga/framework/CI_ws/ADKU3_IMG/
+
+rsync -az --delete $HOMEDIR $CI_WS_DIR
+cd ${CI_WS_DIR}/${TESTNAME}
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Get PSL Simulation Environment ...&quot;
+echo &quot;****************************************************************************************&quot;
+rm -rf pslse
+git clone https://github.com/ibm-capi/pslse pslse
+export PSLSE_ROOT=${CI_WS_DIR}/${TESTNAME}/pslse
+
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;LSF SETUP ...&quot;
+echo &quot;****************************************************************************************&quot;
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SUBMITTER_OSTYPE=Linux
+export LSF_ENVDIR=/home/lsfbb/prod/conf
+
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Vivado SETUP ...&quot;
+echo &quot;****************************************************************************************&quot;
+export          XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+export          VIV_VERSION=&quot;2017.4&quot;
+
+source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Setup SNAP Build Environment ...&quot;
+echo &quot;****************************************************************************************&quot;
+
+cd ${CI_WS_DIR}/${TESTNAME}/snap
+export PSL_DCP=/afs/bb/proj/fpga/framework/cards/ADKU3/current/b_route_design.dcp
+
+#setup snap_env.sh
+echo &quot;export PSLSE_ROOT=$CI_WS_DIR/$TESTNAME/pslse&quot; &gt; snap_env.sh
+echo &quot;export PSL_DCP=$PSL_DCP&quot;                      &gt;&gt; snap_env.sh
+echo &quot;export TIMING_LABLIMIT=\&quot;-10\&quot;&quot;               &gt;&gt; snap_env.sh
+
+
+echo &quot;using the following DCP: $(readlink -f $PSL_DCP)&quot;
+
+# Build the USER and FACTORY bitstreams
+make -s ADKU3.hdl_example.SDRAM.FACTORY.defconfig
+
+#
+# The following step submits the Image Build to LSF, since it is very
+# very timeconsuming.
+#
+bsub -P zsort -I -M 10 -n 4 -R &apos;span[hosts=1]&apos; -R &apos;select[type=X86_64]&apos; make image
+
+# Compile the MCS file from FACTORY and USER bitstreams
+factory_bitstream=`ls -t ./hardware/build/Images/fw_*[0-9]_FACTORY.bit | head -n1`
+echo &quot;Factory bitstream=$factory_bitstream&quot;
+user_bitstream=`ls -t ./hardware/build/Images/fw_*[0-9].bit | head -n1`
+echo &quot;User bitstream=$user_bitstream&quot;
+export FPGACARD=ADKU3
+./hardware/setup/build_mcs.tcl $factory_bitstream $user_bitstream ${factory_bitstream%.bit}.mcs
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;COPY RESULTS&quot;
+echo &quot;****************************************************************************************&quot;
+scp ./hardware/build/Images/*.bi[nt] fpga@fpga02://opt/fpga/snap/$FPGACARD/
+scp ${factory_bitstream%.bit}.mcs fpga@fpga02://opt/fpga/snap/$FPGACARD/
+scp ${factory_bitstream%.bit}.prm fpga@fpga02://opt/fpga/snap/$FPGACARD/
+
+
+
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.1">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.ManuallyEnteredCommitContextSource">
+        <context>${PROJECT_NAME} ${GIT_BRANCH}</context>
+      </contextSource>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>PENDING</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+      <baseUrl></baseUrl>
+      <teamDomain>capi-snap</teamDomain>
+      <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
+      <authTokenCredentialId></authTokenCredentialId>
+      <botUser>false</botUser>
+      <room>#snap_jenkins</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>true</notifyNotBuilt>
+      <notifyUnstable>true</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>true</notifyBackToNormal>
+      <notifyRepeatedFailure>true</notifyRepeatedFailure>
+      <includeTestSummary>true</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>false</cleanWhenUnstable>
+      <cleanWhenFailure>false</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>1200</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

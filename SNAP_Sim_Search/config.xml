@@ -1,0 +1,199 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Quick build check on an old RHEL6.4 x86 installation. Using pslse libcxl to enable the Intel build.&#xd;
+This step should always work. Than try to use NCSIM to simulate an example action.&#xd;
+&#xd;
+Contact: Frank Haverkamp &lt;haverkam@de.ibm.com&gt;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>3</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+      <projectUrl>https://github.com/open-power/donut/</projectUrl>
+      <displayName>donut</displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/donut</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+      <hudson.plugins.git.BranchSpec>
+        <name>*HLS*</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H H/6 * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;****************************************************************************************&quot;
+ulimit -c unlimited
+export PATH=$PATH:/usr/local/bin
+echo &quot;****************************************************************************************&quot;
+
+#
+# Checking out the pslse and the snap-example-actions git is not working out, due to the
+# desire to use different branches from each of those. So use the brute force way for now.
+#
+echo &quot;Get and build Simulation Software ...&quot;
+rm -rf pslse
+git clone https://github.com/ibm-capi/pslse pslse
+
+export PSLVER=8
+make -C pslse/libcxl
+make -C snap clean
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Vivado SETUP ...&quot;
+echo &quot;****************************************************************************************&quot;
+export          XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+export          VIV_VERSION=&quot;2017.4&quot;
+source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Setup SNAP Build Environment ...&quot;
+echo &quot;****************************************************************************************&quot;
+
+#
+#    PSL_DCP=&lt;pointer to the Vivado CAPI PSL design checkpoint file (b_route_design.dcp)&gt;
+#    ACTION_ROOT=&lt;pointer to the directory containing the action sources&gt;
+#    PSLSE_ROOT=&lt;pointer to the path containing the PSLSE github clone&gt;
+#
+
+cat &lt;&lt; EOF &gt; ./snap/snap_env.sh
+export SNAP_ROOT=`pwd`/snap
+export PSLSE_ROOT=`pwd`/pslse
+export ACTION_ROOT=`pwd`/snap/actions/hls_memcopy
+export PSLVER=8
+EOF
+. ./snap/snap_env.sh
+
+make -C snap N250S.hls_search.defconfig
+make -C snap model
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Now try SEARCH&quot;
+echo &quot;****************************************************************************************&quot;
+
+cd $SNAP_ROOT/hardware/sim
+
+python -c &apos;print(&quot;X&quot; * 1024)&apos; &gt; $SNAP_ROOT/1KiB_X.bin
+
+export LD_LIBRARY_PATH=$SNAP_ROOT/software/lib:$LD_LIBRARY_PATH
+
+./run_sim -explore -app ../actions/hls_search/sw/snap_search -arg &quot;-vvv -t6000 -E1024 -i $SNAP_ROOT/1KiB_X.bin -pX&quot;
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.1">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.ManuallyEnteredCommitContextSource">
+        <context>${PROJECT_NAME} ${GIT_BRANCH}</context>
+      </contextSource>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>PENDING</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+      <baseUrl></baseUrl>
+      <teamDomain>capi-snap</teamDomain>
+      <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
+      <authTokenCredentialId></authTokenCredentialId>
+      <botUser>false</botUser>
+      <room>#snap_jenkins</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>true</notifyNotBuilt>
+      <notifyUnstable>true</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>true</notifyBackToNormal>
+      <notifyRepeatedFailure>true</notifyRepeatedFailure>
+      <includeTestSummary>true</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>300</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

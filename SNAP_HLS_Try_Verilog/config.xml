@@ -1,0 +1,194 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Quick check for Verilog based action created with HLS. Using pslse libcxl to enable the Intel build.&#xd;
+This step should always work. Then try to use NCSIM to simulate an example action.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>3</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
+      <projectUrl>https://github.com/open-power/donut/</projectUrl>
+      <displayName>donut</displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.5.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/donut</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>donut</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;****************************************************************************************&quot;
+ulimit -c unlimited
+export PATH=$PATH:/usr/local/bin
+echo &quot;****************************************************************************************&quot;
+
+#
+# Checking out the pslse and the snap-example-actions git is not working out, due to the
+# desire to use different branches from each of those. So use the brute force way for now.
+#
+echo &quot;Get and build Simulation Software ...&quot;
+rm -rf pslse
+git clone https://github.com/ibm-capi/pslse pslse
+make -C pslse/libcxl
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Now try ...&quot;
+echo &quot;  FIXME far too many steps to get the simulation up and running&quot;
+echo &quot;  make simulate ... and it should work with reasonable defaults ...&quot;
+echo &quot;****************************************************************************************&quot;
+
+export SIMULATOR=ncsim
+export USERHOME=`pwd`
+. /afs/bb/proj/fpga/framework/ibm_settings_for_donut 2015.4
+
+export DONUT_ROOT=$USERHOME/donut
+export ACTION_ROOT=$DONUT_ROOT/hardware/action_examples/hls_search/vhdl
+
+. ./donut/hardware/donut_settings
+make -C donut
+make -C donut/hardware/action_examples/hls_search
+make -C donut config model
+
+cd donut/hardware/sim
+
+#echo &quot;****************************************************************************************&quot;
+#echo &quot;Now try SEARCH&quot;
+#echo &quot;****************************************************************************************&quot;
+
+#python -c &apos;print(&quot;X&quot; * 1024)&apos; &gt; $DONUT_ROOT/1KiB_X.bin
+
+#export DNUT_TRACE=0xf
+#./run_sim -app examples/demo_search -arg &quot;-vvv -t600 -E1024 -i $DONUT_ROOT/1KiB_X.bin -pX&quot;
+
+
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Now try MEMCOPY 1024&quot;
+echo &quot;****************************************************************************************&quot;
+
+export DNUT_TRACE=0xf
+
+# Python produced 1025 bytes ... not 1024
+# Python2 does the right 1024 bytes using it this way:
+
+# Small
+python3 -c &apos;print(&quot;X&quot; * 1024, end=&quot;&quot;)&apos; &gt; $DONUT_ROOT/1KiB_X.bin
+./run_sim -app examples/demo_memcopy -arg &quot;-v -t240 -X -i $DONUT_ROOT/1KiB_X.bin -o $DONUT_ROOT/1KiB_X.out&quot;
+
+diff $DONUT_ROOT/1KiB_X.bin $DONUT_ROOT/1KiB_X.out
+echo &quot;Should be the same ...&quot;
+
+## Medium
+#python3 -c &apos;print(&quot;X&quot; * (4 * 1024), end=&quot;&quot;)&apos; &gt; $DONUT_ROOT/4KiB_X.bin
+#./run_sim -app examples/demo_memcopy -arg &quot;-v -t1200 -X -i $DONUT_ROOT/4KiB_X.bin -o $DONUT_ROOT/4KiB_X.out&quot;
+
+#diff $DONUT_ROOT/4KiB_X.bin $DONUT_ROOT/4KiB_X.out
+#echo &quot;Should be the same ...&quot;
+
+## Large
+#python3 -c &apos;print(&quot;X&quot; * (128 * 1024), end=&quot;&quot;)&apos; &gt; $DONUT_ROOT/128KiB_X.bin
+#./run_sim -app examples/demo_memcopy -arg &quot;-v -t12000 -X -i $DONUT_ROOT/128KiB_X.bin -o $DONUT_ROOT/128KiB_X.out&quot;
+
+#diff $DONUT_ROOT/128KiB_X.bin $DONUT_ROOT/128KiB_X.out
+#echo &quot;Should be the same ...&quot;
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.20">
+      <recipients>haverkam@de.ibm.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>true</sendToIndividuals>
+    </hudson.tasks.Mailer>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.0">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource"/>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS ;-)</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE :-(</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>PENDING ...</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+      <teamDomain>capi-snap</teamDomain>
+      <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
+      <botUser>false</botUser>
+      <room>#snap_jenkins</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>true</notifyNotBuilt>
+      <notifyUnstable>true</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>true</notifyBackToNormal>
+      <notifyRepeatedFailure>true</notifyRepeatedFailure>
+      <includeTestSummary>true</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.18">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>300</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

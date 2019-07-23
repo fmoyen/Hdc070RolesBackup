@@ -1,0 +1,149 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>debug for Alexandre</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># $SAVE is not created by default for new cards
+# if test are used before creating the dir, a file
+# $CRD_missing is created and over and overwritten,
+# it must be erased first !
+# cd /data/Images
+# mkdir RCXVUP_missing
+# chmod 750 RCXVUP_missing
+# rm S241_missing
+# rm FX609_missing
+# mkdir S241_missing
+# chmod 750 S241_missing
+# mkdir FX609_missing
+# chmod 750 FX609_missing
+# mkdir AD9V3_missing
+# chmod 750 AD9V3_missing
+
+#cd 
+#ls -al
+#rm core.*
+#cd .ssh
+#ls -al
+#more config
+#more config.orig
+#more known_hosts
+#mv config config.orig2
+#cp /afs/bb/proj/fpga/framework/config .
+#more config
+#ssh-keyscan -H lewen5 &gt;&gt; ~/.ssh/known_hosts
+#ping -c2 10.7.12.50
+#ping -c2 brahma
+#ping -c2 lewen5
+#more id_rsa.pub
+
+#    RC=0;ssh lewen05 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
+#    if [ $RC != &quot;0&quot; ]; then :
+#      echo &quot;lewen05 not reachable, retry VPN connection&quot;
+#      echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+#	fi
+    
+#
+#ls -al
+#cd /afs/bb/proj/fpga/framework/CI_ws/vol4
+#ls -al
+#mkdir SNAP_IMG_CAPI2_matrix
+#cd ..
+#ln -s ./vol4/SNAP_IMG_CAPI2_matrix SNAP_IMG_CAPI2_matrix
+#ls -al
+#cd vol4
+#ls -al
+
+# DEALING WITH A NEW VOLUME
+#ls -al
+#cd /afs/bb/proj/fpga/framework/CI_ws/vol5
+#ls -al
+##mkdir OC_SNAP_SIM_matrix
+#cd ..
+#ln -s ./vol5/OC_SNAP_SIM_matrix OC_SNAP_SIM_matrix
+#ls -al
+#cd vol5
+#ls -al
+
+#cd /afs/bb/proj/fpga/framework/CI_ws/vol6
+#ls -al
+#mkdir OC_SNAP_IMG_matrix
+#cd ..
+#ln -s ./vol6/OC_SNAP_IMG_matrix OC_SNAP_IMG_matrix
+#ls -al
+#cd vol6
+#ls -al
+
+#manual Directory creation (now it should be done in CAPI2 script)
+#mv /data/Images/U200_missing /data/Images/U200_image.bin
+CRD=U200
+DIR=${CRD}_missing
+mkdir -p /data/Images/${DIR}
+
+
+#cd /data/Images
+#mkdir N250SP_FACTORY_MCS S121B_FACTORY_MCS FX609_FACTORY_MCS S241__FACTORY_MCS AD9V3__FACTORY_MCS RCXVUP__FACTORY_MCS
+#rm -rf S241__FACTORY_MCS AD9V3__FACTORY_MCS RCXVUP__FACTORY_MCS
+#mkdir S241_FACTORY_MCS AD9V3_FACTORY_MCS RCXVUP_FACTORY_MCS
+
+
+# cleaning process debug
+#
+#    gitnames=`git ls-remote https://github.com/open-power/snap|grep &quot;refs/heads/&quot;|awk &apos;{print $2}&apos;`
+#    echo &quot;gitnames=$gitnames&quot;
+#    for dir in &quot;/afs/bb/proj/fpga/framework/CI_ws/SNAP_IMG_CAPI2_matrix&quot;/*;do
+#      if [ -d &quot;$dir&quot; ];then
+#        branch=&quot;refs/heads/&quot;`basename $dir`
+#        if [[ &quot;$gitnames&quot; =~ &quot;$branch&quot; ]];then echo &quot;branch=$branch found in gitnames, keep dir=$dir&quot;
+#        else 
+#          echo &quot;branch=$branch not found in gitnames, delete dir=\&apos;$dir\&apos;&quot;
+#          rm -rf &quot;$dir&quot;     # put in quotes to work for directories with blanks			
+#        fi        
+#      else echo &quot;$dir is not a directory, continuing&quot;
+#      fi
+#    done
+
+# OpenCAPI simulaiton socket failure debug
+#
+# cd /afs/bb/proj/fpga/framework/CI_ws/OC_SIM_matrix/master/ACT/hls_helloworld/CRD/AD9V3/SIM_VIV/xsim_2018.2/snap/hardware/sim
+# ./run_sim -list testlist.sh -noaet
+
+# preparing tmp file for bin debug
+# rm /data/Images/tmp/*
+
+#mv /data/Images/fw_2019_0409_1230_hls_memcopy_SDRAM_AD9V3_6_* /data/Images/tmp
+#ls -al /data/Images/tmp
+
+#cd /data/Images/AD9V3_missing
+#gzip fw_2019_0502*
+#ll</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.Mailer plugin="mailer@1.22">
+      <recipients>alexandre.castellane@fr.ibm.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+  </publishers>
+  <buildWrappers/>
+</project>

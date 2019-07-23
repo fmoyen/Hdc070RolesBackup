@@ -1,0 +1,553 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project plugin="matrix-project@1.12">
+  <actions/>
+  <description>builds PSL9 bitstreams with many different configurations (and will eventually test these images on real HW)&#xd;
+in case of problems: please contact boekholt@de.ibm.com</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+      <projectUrl>https://github.com/open-power/snap/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>BRANCH</name>
+          <description>Choose the branch you want to test. Please do not use wildcards!!</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>TEST_ON_HW</name>
+          <description>enable/disable testing on HW</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>BUILD_CLOUD_IMAGES</name>
+          <description>enable/disable the could image build flow</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>HDL_EXAMPLES</name>
+          <description>enable/disable the HDL examples</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>HLS_EXAMPLES</name>
+          <description>enable/disable the HLS examples</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>N250SP_ENABLE</name>
+          <description>enable/disable the N250SP card</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>1</maxConcurrentPerNode>
+      <maxConcurrentTotal>10</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList">
+        <string>THROTTLE_IMG</string>
+      </categories>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>category</throttleOption>
+      <limitOneJobWithMatchingParams>true</limitOneJobWithMatchingParams>
+      <matrixOptions>
+        <throttleMatrixBuilds>false</throttleMatrixBuilds>
+        <throttleMatrixConfigurations>true</throttleMatrixConfigurations>
+      </matrixOptions>
+      <paramsToUseForLimit></paramsToUseForLimit>
+      <configVersion>1</configVersion>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/snap</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${BRANCH}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/afs/bb/proj/fpga/framework/CI_ws/SNAP_IMG_TEST_matrix/${BRANCH}</customWorkspace>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>ACT</name>
+      <values>
+        <string>hdl_example.SDRAM</string>
+        <string>hdl_example.BRAM</string>
+        <string>hdl_example.NORAM</string>
+        <string>hdl_example.SDRAM.NVME</string>
+        <string>hdl_nvme_example.SDRAM.NVME</string>
+        <string>hls_nvme_memcopy</string>
+        <string>hls_memcopy</string>
+        <string>hls_bfs</string>
+        <string>hls_intersect_s</string>
+        <string>hls_intersect_h</string>
+        <string>hls_hashjoin</string>
+        <string>hls_search</string>
+        <string>hls_sponge</string>
+        <string>hls_helloworld</string>
+        <string>test</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>CRD_CL</name>
+      <values>
+        <string>N250SP_CL</string>
+        <string>N250SP_nCL</string>
+      </values>
+    </hudson.matrix.TextAxis>
+  </axes>
+  <combinationFilter>ACT=~&quot;hls&quot; || ACT=~&quot;hdl&quot; || ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;N250SP_nCL&quot;</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#set +x
+#!/bin/bash
+echo &quot;***********************************************************&quot;
+echo &quot;`date` BUILD START&quot;
+CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
+CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
+ACTION_TYPE=$(echo $ACT| cut -d&apos;_&apos; -f 1)
+echo &quot;Checking Build with Card=$CRD Action=$ACT Action_type=$ACTION_TYPE CLOUD_build=$CL&quot;
+NAME=$(echo $GIT_BRANCH| cut -d&apos;/&apos; -f 2 |tr &apos;[:upper:]&apos; &apos;[:lower:]&apos;) # remove origin/ from branch and translate to lowercase
+PREFIX=$(echo $NAME| cut -d&apos;_&apos; -f 1)    # chars up to first &apos;_&apos; identify need for test
+
+BSKIP=0
+if [ &quot;$CL&quot;          == &quot;CL&quot;    ] &amp;&amp; [ &quot;$BUILD_CLOUD_IMAGES&quot; == &quot;false&quot; ]; then BSKIP=1;fi
+if [ &quot;$ACTION_TYPE&quot; == &quot;hdl&quot;   ] &amp;&amp; [ &quot;$HDL_EXAMPLES&quot;       == &quot;false&quot; ]; then BSKIP=1;fi
+if [ &quot;$ACTION_TYPE&quot; == &quot;hls&quot;   ] &amp;&amp; [ &quot;$HLS_EXAMPLES&quot;       == &quot;false&quot; ]; then BSKIP=1;fi
+if [ &quot;$CRD&quot;         == &quot;N250SP&quot;] &amp;&amp; [ &quot;$N250SP_ENABLE&quot;      == &quot;false&quot; ]; then BSKIP=1;fi
+echo &quot;build_cloud_images=$BUILD_CLOUD_IMAGES hdl_examples=$HDL_EXAMPLES hls_examples=$HLS_EXAMPLES SKIP=$BSKIP&quot;
+
+case &quot;$CRD:$ACT&quot; in
+  *:hdl_example* )       ASKIP=0;;
+  *:hls_memcopy )        ASKIP=0;;
+  *:hls_bfs )            ASKIP=0;;
+  *:hls_hashjoin )       ASKIP=0;;
+  *:hls_intersect_h )    ASKIP=0;;
+  *:hls_intersect_s )    ASKIP=0;;
+  *:hls_search )         ASKIP=0;;
+  *:hls_sponge )         ASKIP=0;;
+  *:hls_blowfish )       ASKIP=1;;
+  *:hls_helloworld )     ASKIP=1;;
+  *:test )               ASKIP=0;;
+  * )                    ASKIP=0;;
+esac            
+echo &quot;card=$CRD action=$ACT SKIP=$ASKIP&quot;
+
+case &quot;$ACT&quot; in
+  test ) 
+    gitnames=`git ls-remote https://github.com/open-power/snap|grep &quot;refs/heads/&quot;|awk &apos;{print $2}&apos;`
+    echo &quot;gitnames=$gitnames&quot;
+    for dir in &quot;/afs/bb/proj/fpga/framework/CI_ws/SNAP_IMG_TEST_matrix&quot;/*;do
+      if [ -d &quot;$dir&quot; ];then
+        branch=&quot;refs/heads/&quot;`basename $dir`
+        if [[ &quot;$gitnames&quot; =~ &quot;$branch&quot; ]];then echo &quot;branch=$branch found in gitnames, keep dir=$dir&quot;
+        else 
+          echo &quot;branch=$branch not found in gitnames, delete dir=$dir&quot;
+          rm -rf $dir &gt;/dev/null 2&gt;&amp;1 &amp;
+        fi
+      fi
+    done  
+    DSKIP=0;;
+  *&quot;hls_intersect&quot;* )     
+    if [ -f snap/defconfig/$CRD.hls_intersect.defconfig ];then DSKIP=0
+    else 
+      echo &quot;$CRD.hls_intersect.defconfig does not exist&quot;
+      ls snap/defconfig/
+      DSKIP=1
+    fi;;  
+  * )    
+    if [ -f snap/defconfig/$CRD.$ACT.defconfig ];then DSKIP=0
+    else 
+      echo &quot;$CRD.$ACT.defconfig does not exist&quot;
+      ls snap/defconfig/
+      DSKIP=1
+    fi;;  
+esac
+echo &quot;defconfig SKIP=$DSKIP&quot;
+
+AFSused=`fs lq /afs/bb/proj/fpga/framework/CI_ws/SNAP_IMG_TEST_matrix/|grep -v Used|awk &apos;{print $4}&apos;|sed &apos;s/%//g&apos;|sed &apos;s/&lt;//g&apos;`
+echo &quot;AFS spaced currently used=${AFSused}%&quot;
+if [ &quot;$AFSused&quot; -gt &quot;90&quot; ];then
+  echo &quot;ERROR: AFS space is used up ${AFSused}%, stopping additional builds&quot;
+  exit 1
+else if(( AFSused &gt; 70 ));then echo &quot;WARNING: AFS space is used up ${AFSused}%&quot;;fi
+fi
+
+if [ &quot;$ASKIP&quot; == &quot;1&quot; ] || [ &quot;$DSKIP&quot; == &quot;1&quot; ] || [ &quot;$BSKIP&quot; == &quot;1&quot; ];then SKIP=1;else SKIP=0;fi
+echo &quot;SKIP=$SKIP&quot; &gt;export_props.properties
+echo &quot;properties passed to next shell:&quot;
+cat export_props.properties
+echo &quot;***********************************************************&quot;</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.1.5">
+      <info>
+        <propertiesFilePath>export_props.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.6">
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+        <token>$SKIP</token>
+      </condition>
+      <buildStep class="org.jenkins_ci.plugins.fail_the_build.FixResultBuilder" plugin="fail-the-build-plugin@1.0">
+        <defaultResultName>ABORTED</defaultResultName>
+        <success></success>
+        <unstable></unstable>
+        <failure></failure>
+        <aborted></aborted>
+      </buildStep>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <hudson.tasks.Shell>
+      <command>set +x                            # reduce Jenkins output
+ulimit -c unlimited               # limit core dumps
+export PATH=$PATH:/usr/local/bin  # python3 needs this path setup
+export USERHOME=`pwd`
+export SNAP_ROOT=$USERHOME/snap
+TESTBOXES=( tul3 tul2 )     # init array of systems avail for test
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;LSF SETUP ...&quot;
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SUBMITTER_OSTYPE=Linux
+export LSF_ENVDIR=/home/lsfbb/prod/conf
+LSF=&quot;-P zsort&quot;
+LSF+=&quot; -M 12&quot;                     # 12GB memory
+LSF+=&quot; -C 2000&quot;                   # 2MB core file
+LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
+LSF+=&quot; -I -n 8&quot;
+
+CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
+CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
+echo &quot;Checking Build with Card=$CRD Action=$ACT CLOUD=$CL&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Get PSL Simulation Environment ...&quot;
+rm -rf pslse
+case $CRD in 
+  &apos;N250SP&apos;)
+    echo &quot;cloning PSLSE for PSL9&quot;
+    git clone -b master https://github.com/ibm-capi/pslse pslse
+#    git clone -b capi2  https://github.com/ibm-capi/pslse pslse
+    export PSLVER=9                        # PSL8 and PSL9 merged in branch=capi2 since 12dec2017
+    ;;
+  *)
+    echo &quot;cloning PSLSE for PSL8&quot;
+    git clone -b master https://github.com/ibm-capi/pslse pslse
+#   cd pslse; git checkout v3.1; cd ..     # tempfix see issues #98/99/100
+#   git clone -b capi2  https://github.com/ibm-capi/pslse pslse
+    export PSLVER=8                        # PSL8 and PSL9 merged in branch=capi2 since 12dec2017
+    ;;
+esac
+cd ${SNAP_ROOT}
+echo &quot;export PSLSE_ROOT=$USERHOME/pslse&quot; &gt;snap_env.sh
+echo &quot;export PSL_DCP=/afs/bb/proj/fpga/framework/cards/$CRD/current/b_route_design.dcp&quot; &gt;&gt;snap_env.sh
+echo &quot;export PSL4N250SP_ROOT=/afs/bb/proj/fpga/framework/cards/N250SP/psl4n250sp&quot; &gt;&gt;snap_env.sh
+echo &quot;#setup: XILINX_LOCAL_USER_DATA=${XILINX_LOCAL_USER_DATA}, overwrite=no to prevent write access error in XilincTclStore (tclapp:load_apps)&quot; &gt;&gt;snap_env.sh
+echo &quot;export XILINX_LOCAL_USER_DATA=no&quot; &gt;&gt; snap_env.sh
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Vivado SETUP ...&quot;
+case $CRD in 
+  &apos;N250SP&apos;)   export VIV_VERSION=&quot;2017.4&quot;;;
+  *)          export VIV_VERSION=&quot;2017.4&quot;;;    
+esac
+export XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Configure Image ...&quot;
+case $ACT in          # select config &amp; compile action
+  &quot;test&quot;)             echo &quot;*T E S T  **skip image build /test&quot;
+  					  if [ &quot;$TEST_ON_HW&quot; == &quot;true&quot; ]; then 
+					    for box in &quot;${TESTBOXES[@]}&quot;;do 
+    				      nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+      					  echo &quot;`date` box=$box nusers=$nusers&quot;
+      				    done
+                      fi  
+                      exit 0                     
+                      ;;
+  &apos;hls_intersect_h&apos;)  make -s $CRD.hls_intersect.defconfig
+                      source ./snap_env.sh        # execute to exploit ACTION_ROOT
+                      echo &quot;action compile intersect hash&quot;;
+                      make -C ${ACTION_ROOT} clean config_h
+                      ;;
+  &apos;hls_intersect_s&apos;)  make -s $CRD.hls_intersect.defconfig
+                      source ./snap_env.sh        # execute to exploit ACTION_ROOT
+                      echo &quot;action compile intersect sort&quot;;
+                      make -C ${ACTION_ROOT} clean config_s
+                      ;;
+  *&quot;nvme&quot;*|*&quot;NVME&quot;*)  echo &quot;export SIMULATOR=nosim&quot; &gt;&gt; snap_env.sh
+                      make -s $CRD.$ACT.defconfig
+                      ;;
+  *)                  make -s $CRD.$ACT.defconfig;;
+esac
+
+echo &quot;****************************************************************************************&quot;
+if [ &quot;$CL&quot; == &quot;nCL&quot; ]; then   
+  echo &quot;`date` Build Non_Cloud Image ...&quot;
+  bsub $LSF -J &quot;${CRD}_${ACT}_image&quot; &quot;make image&quot;
+else 
+  mkdir -p ${SNAP_ROOT}/hardware/DCPs
+  echo &quot;`date` Build Cloud Image ...&quot;
+  echo &quot;export DCP_ROOT=${SNAP_ROOT}/hardware/DCPs/&quot;              &gt;&gt; snap_env.sh
+  echo &quot;ENABLE_PRFLOW=y&quot;                                          &gt;&gt; .snap_config
+  echo &quot;ENABLE_CLOUD_USER_FLOW=n&quot;                                 &gt;&gt; .snap_config
+  echo &quot;ENABLE_CLOUD_BUILD_BITFILE=n&quot;                             &gt;&gt; .snap_config
+  make -s oldconfig
+  echo &quot;Build Static Region ...&quot;
+  bsub $LSF -J &quot;${CRD}_${ACT}_image&quot; &quot;make cloud_base&quot;
+  echo &quot;Build Action Region ...&quot;
+  bsub $LSF -J &quot;${CRD}_${ACT}_image&quot; &quot;make cloud_action&quot;
+  echo &quot;Merge Static and Action Region ...&quot;
+  echo &quot;ENABLE_CLOUD_BUILD_BITFILE=y&quot;                             &gt;&gt; .snap_config
+  make -s oldconfig
+  bsub $LSF -J &quot;${CRD}_${ACT}_image&quot; &quot;make cloud_merge&quot;
+fi
+BINFILE=`ls $SNAP_ROOT/hardware/build/Images/*.bin`
+size=`ls -al $BINFILE | awk &apos;{print $5}&apos;`
+echo &quot;binfile=$BINFILE size=$size&quot;
+if (( $size &lt; 100000 ));then echo &quot;ERROR: image is too small to burn&quot;;exit 1;fi
+IMAGE=&quot;/opt/fpga/snap/${CRD}/${ACT}/&quot;`basename $BINFILE`
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;test_on_hw=${TEST_ON_HW} for card=$CRD&quot;    
+if [ &quot;$TEST_ON_HW&quot; == &quot;false&quot; ] ||      # no test for any card
+   [ &quot;$CRD&quot;        == &quot;N250SP&quot; ]; then  # no test/card avail yet
+   echo &quot;no test required&quot;; exit 0;
+fi
+#
+# Set unique target directory such that parallel builds do not disturb each other.
+# Well, we might to clean up those from time to time ...
+#
+TARGET_DIR=&quot;${JOB_NAME}-${BUILD_NUMBER}-${GIT_BRANCH}&quot;
+export TARGET_DIR=`echo $TARGET_DIR | sed -e &apos;s/[=,\/]/-/g&apos;`
+echo &quot;TARGET_DIR=${TARGET_DIR}&quot;
+echo &quot;Current Dir is &quot; `pwd`
+#echo &quot;************ Parent Job Data **********************************************************&quot;
+#echo &quot;--&gt; PARENT_JOB_NAME: ${PARENT_JOB_NAME}&quot;
+echo &quot;--&gt; JOB_NAME:        ${JOB_NAME}&quot;
+echo &quot;--&gt; IMAGE:           ${IMAGE}&quot;
+#echo &quot;--&gt; CARD_TO_TEST:    ${CARD_TO_TEST}&quot;
+#echo &quot;--&gt; ACTION:          ${ACTION}&quot;
+echo &quot;--&gt; GIT_Branch:      ${GIT_BRANCH}&quot;
+echo &quot;--&gt; GIT_Commit:      ${GIT_COMMIT}&quot;
+#echo &quot;************ User Input Data **********************************************************&quot;
+#echo &quot;--&gt; MY_IMAGE:        ${MY_IMAGE}&quot;
+#echo &quot;--&gt; MY_CARD:         ${MY_CARD}&quot;
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Wait until a test system with my card is free&quot;
+while [ 1 ]; do
+  for box in &quot;${TESTBOXES[@]}&quot;;do 
+    nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
+    if [ 0 -eq $nusers ]; then
+      RC=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD}` || RC=$?
+	  echo &quot;`date` box=$box card=$CRD snap_find_card RC=$RC IDs=$cards&quot;
+      case $RC in
+       0)
+          echo &quot;no card avail&quot;
+          ;;
+       1|2|3|4)
+          for cardid in $cards;do
+            LOCK=&quot;jenkins_lock_card&quot;$cardid
+    	    RC=0;ssh fpga@$box &quot;mkdir ${LOCK} 2&gt;/dev/null&quot; || RC=$?
+            if [ $RC -eq 0 ]; then 
+      	      echo &quot;`date` box=$box $LOCK lock RC=$RC&quot;
+		      break 3	# locking success, exit from while/for/for
+            else echo &quot;box=$box $LOCK already locked, continue to wait&quot;;fi
+          done
+          ;;
+       *)
+          # [[ $cards =~ &quot;^[a-zA-Z]+$&quot; ]] &amp;&amp; { echo &quot;IDs from snap_find_card=$cards is not a number&quot;; exit 100; }
+          echo &quot;unknown RC=$RC from snap_find_card=$cards&quot;; exit 100;
+          ;; 
+      esac
+    else echo &quot;`date` box=$box nusers=$nusers&quot;;fi
+  done # for box
+  echo &quot;`date` no test card avail in ${TESTBOXES[@]} ... Waiting .... &quot;
+  sleep 60
+done # while forever
+
+function finish {  # define function to unlock in case of error
+#   echo &quot;RC=$?, now unlock ${LOCK} and end&quot;
+	SSH_RC=0;ssh fpga@$box rmdir ${LOCK} || SSH_RC=$?
+	echo &quot;`date` box=$box $LOCK unlock RC=$SSH_RC&quot;
+}
+echo &quot;lock succeeded for box=$box cardid=$cardid&quot;
+
+ssh fpga@${box} &quot;echo ------ START of JOB on $box ----&gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;date                                 &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo JOB_NAME  : $JOB_NAME           &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Card      : $CRD[$cardid]       &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Image     : $IMAGE              &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Build No  : ${BUILD_NUMBER}     &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo Git Branch: ${GIT_BRANCH}       &gt;&gt; jenkins.log&quot;
+
+trap finish EXIT  # register finish/unlock function, after lock is set
+echo &quot;Copy ${TARGET_DIR} to ${box}&quot;
+rsync -az --delete . fpga@${box}:${TARGET_DIR}
+echo &quot;COPY RESULTS $BINFILE to $IMAGE on $box&quot;
+rsync -tvh $BINFILE fpga@$box:$IMAGE
+
+# echo &quot;System info ...&quot;
+# ssh fpga@${box} lsb_release -a
+
+RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+if [ ! -f $RUN ]; then
+	echo &quot;`date` Shell Script $RUN not found,Exit UNSTABLE&quot;
+    exit 100
+fi
+
+RUN+=&quot; -D ${TARGET_DIR}&quot;
+if [ -z ${IMAGE} ]; then RUN+=&quot; -A ALL&quot;
+else RUN+=&quot; -F ${IMAGE} -A ${CRD} -C $cardid&quot;
+fi
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Build the software and actions on $box ...&quot;
+ssh fpga@${box} make -C ${TARGET_DIR} clean software actions
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;`date` Execute Test: $RUN on $box&quot;
+RC=0
+ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
+	export TERM=xterm
+	cd ${TARGET_DIR}
+	set -f
+    ${RUN}
+EOF
+
+# Write short log only, Clean workspace
+ssh fpga@${box} &quot;echo End of Job with RC: $RC &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;date                         &gt;&gt; jenkins.log&quot;
+ssh fpga@${box} &quot;echo ------------------------&gt;&gt; jenkins.log&quot;
+
+echo &quot;`date` Clean up ${TARGET_DIR} on ${box}&quot;
+ssh -T fpga@${box} rm -rf ${TARGET_DIR}
+  
+if [ 0 -ne $RC ]; then
+  echo &quot;`date` Test failed RC = $RC, exit UNSTABLE&quot;
+  exit 100
+fi</command>
+      <unstableReturn>100</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText></logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>set +x&#xd;
+#!/bin/bash&#xd;
+echo &quot;`date` BUILD EXIT&quot;</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.1">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource"/>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>Build and Test Successful</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>ERROR</state>
+            <message>Test Error</message>
+            <result>UNSTABLE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>ERROR</state>
+            <message>Image Build Error</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>SUCCESS</state>
+            <message>build skipped invalid configuration</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>false</cleanWhenUnstable>
+      <cleanWhenFailure>false</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
+      <strategy class="hudson.plugins.build_timeout.impl.NoActivityTimeOutStrategy">
+        <timeoutSecondsString>7200</timeoutSecondsString>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>#${BUILD_NUMBER} ${GIT_BRANCH}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+    <touchStoneCombinationFilter>ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;N250SP_nCL&quot;</touchStoneCombinationFilter>
+    <touchStoneResultCondition>
+      <name>UNSTABLE</name>
+      <ordinal>1</ordinal>
+      <color>YELLOW</color>
+      <completeBuild>true</completeBuild>
+    </touchStoneResultCondition>
+  </executionStrategy>
+  <childCustomWorkspace>${COMBINATION}</childCustomWorkspace>
+</matrix-project>

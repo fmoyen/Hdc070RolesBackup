@@ -1,0 +1,397 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<matrix-project plugin="matrix-project@1.11">
+  <actions/>
+  <description>builds bitstreams with many different configurations</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
+      <projectUrl>https://github.com/open-power/snap/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>BRANCH</name>
+          <description>Choose the branch you want to test. Please do not use wildcards!!</description>
+          <defaultValue>master</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>1</maxConcurrentPerNode>
+      <maxConcurrentTotal>12</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList">
+        <string>THROTTLE_IMG</string>
+      </categories>
+      <throttleEnabled>true</throttleEnabled>
+      <throttleOption>category</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <matrixOptions>
+        <throttleMatrixBuilds>false</throttleMatrixBuilds>
+        <throttleMatrixConfigurations>true</throttleMatrixConfigurations>
+      </matrixOptions>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.6.4">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/snap</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>${BRANCH}</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.0">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H 0-8/4 * * *
+H 18-23/4 * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <customWorkspace>/afs/bb/proj/fpga/framework/CI_ws/SNAP_IMG_matrix/${BRANCH}</customWorkspace>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>ACT</name>
+      <values>
+        <string>hdl_example.SDRAM</string>
+        <string>hdl_example.BRAM</string>
+        <string>hdl_example.NORAM</string>
+        <string>hdl_example.SDRAM.NVME</string>
+        <string>hdl_nvme_example.BRAM.NVME</string>
+        <string>hls_nvme_memcopy</string>
+        <string>hls_memcopy</string>
+        <string>hls_bfs</string>
+        <string>hls_intersect_s</string>
+        <string>hls_intersect_h</string>
+        <string>hls_hashjoin</string>
+        <string>hls_search</string>
+        <string>hls_sponge</string>
+        <string>hls_blowfish</string>
+        <string>hls_helloworld</string>
+        <string>test</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>CRD</name>
+      <values>
+        <string>ADKU3</string>
+        <string>N250S</string>
+        <string>S121B</string>
+      </values>
+    </hudson.matrix.TextAxis>
+  </axes>
+  <combinationFilter>ACT=~&quot;hls&quot; || CRD==&quot;N250S&quot; &amp;&amp; ACT==&quot;nvme&quot;  || ACT=~&quot;hdl&quot; || ACT==&quot;test&quot; &amp;&amp; CRD==&quot;ADKU3&quot;</combinationFilter>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>set +x
+#!/bin/bash
+echo &quot;***********************************************************&quot;
+echo &quot;Checking Build with Card=$CRD Action=$ACT&quot;
+NAME=$(echo $GIT_BRANCH| cut -d&apos;/&apos; -f 2 |tr &apos;[:upper:]&apos; &apos;[:lower:]&apos;) # remove origin/ from branch and translate to lowercase
+PREFIX=$(echo $NAME| cut -d&apos;_&apos; -f 1)    # chars up to first &apos;_&apos; identify need for test
+#echo &quot;name=$NAME prefix=$PREFIX&quot;
+
+#if [[ &quot;$NAME&quot; == &quot;master&quot; ] ||
+#    [ &quot;$PREFIX&quot; == &quot;rc&quot;   ] ||
+#    [ $ACT =~ $PREFIX     ] ||
+#    [ $CRD =~ $PREFIX     ]];then BSKIP=0;else BSKIP=1;fi
+BSKIP=0
+echo &quot;branch=$BRANCH git_branch=$GIT_BRANCH branch_prefix=$PREFIX SKIP=$BSKIP&quot;
+
+ASKIP=1
+case &quot;$CRD:$ACT&quot; in
+  N250S:*NVME* )         ASKIP=0;;
+  N250SP:hdl_example )   if [ $GIT_BRANCH =~ &quot;psl9&quot; ];then ASKIP=0;fi;;
+  N250SP:* )             ASKIP=1;;
+  *:hdl_example* )       ASKIP=0;;
+  *:hls_memcopy )        ASKIP=0;;
+  *:hls_bfs )            ASKIP=0;;
+  *:hls_hashjoin )       ASKIP=0;;
+  *:hls_intersect_h )    ASKIP=0;;
+  *:hls_intersect_s )    ASKIP=0;;
+  *:hls_search )         ASKIP=0;;
+  *:hls_sponge )         ASKIP=0;;
+  *:hls_blowfish )       ASKIP=1;;
+  *:hls_helloworld )     ASKIP=1;;
+  *:test )               ASKIP=0;;
+  * )                    ASKIP=0;;
+esac            
+echo &quot;card=$CRD action=$ACT SKIP=$ASKIP&quot;
+
+case &quot;$ACT&quot; in
+  test ) DSKIP=0;;
+  *&quot;hls_intersect&quot;* )     
+    if [ -f snap/defconfig/$CRD.hls_intersect.defconfig ];then DSKIP=0;fi;;
+  * )    
+    if [ -f snap/defconfig/$CRD.$ACT.defconfig ];then DSKIP=0
+    else 
+      echo &quot;$CRD.$ACT.defconfig does not exist&quot;
+      ls snap/defconfig/
+      DSKIP=1
+    fi;;  
+esac
+echo &quot;defconfig SKIP=$DSKIP&quot;
+
+if [ &quot;$ASKIP&quot; == &quot;1&quot; ] || [ &quot;$DSKIP&quot; == &quot;1&quot; ] || [ &quot;$BSKIP&quot; == &quot;1&quot; ];then SKIP=1;else SKIP=0;fi
+echo &quot;SKIP=$SKIP&quot; &gt;export_props.properties
+echo &quot;properties passed to next shell:&quot;
+cat export_props.properties
+echo &quot;***********************************************************&quot;</command>
+    </hudson.tasks.Shell>
+    <EnvInjectBuilder plugin="envinject@2.1.3">
+      <info>
+        <propertiesFilePath>export_props.properties</propertiesFilePath>
+      </info>
+    </EnvInjectBuilder>
+    <org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder plugin="conditional-buildstep@1.3.6">
+      <condition class="org.jenkins_ci.plugins.run_condition.core.BooleanCondition" plugin="run-condition@1.0">
+        <token>$SKIP</token>
+      </condition>
+      <buildStep class="org.jenkins_ci.plugins.fail_the_build.FixResultBuilder" plugin="fail-the-build-plugin@1.0">
+        <defaultResultName>ABORTED</defaultResultName>
+        <success></success>
+        <unstable></unstable>
+        <failure></failure>
+        <aborted></aborted>
+      </buildStep>
+      <runner class="org.jenkins_ci.plugins.run_condition.BuildStepRunner$Fail" plugin="run-condition@1.0"/>
+    </org.jenkinsci.plugins.conditionalbuildstep.singlestep.SingleConditionalBuilder>
+    <hudson.tasks.Shell>
+      <command>set +x                            # reduce Jenkins output
+ulimit -c unlimited                 # limit core dumps
+export PATH=$PATH:/usr/local/bin    # python3 needs this path setup
+
+export USERHOME=`pwd`
+export SNAP_ROOT=$USERHOME/snap
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Get PSL Simulation Environment ...&quot;
+echo &quot;****************************************************************************************&quot;
+rm -rf pslse
+git clone https://github.com/ibm-capi/pslse pslse
+export PSLSE_ROOT=$USERHOME/pslse
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;LSF SETUP ...&quot;
+echo &quot;****************************************************************************************&quot;
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/9.1/linux2.6-glibc2.3-x86_64/bin
+export LSF_SUBMITTER_OSTYPE=Linux
+export LSF_ENVDIR=/home/lsfbb/prod/conf
+LSF=&quot;-P zsort&quot;
+LSF+=&quot; -M 20&quot;                     # 20GB memory
+LSF+=&quot; -C 2000&quot;                   # 2MB core file
+LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
+LSF+=&quot; -I -n 8&quot;
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Vivado SETUP ...&quot;
+echo &quot;****************************************************************************************&quot;
+export          XILINX_ROOT=/afs/bb/proj/fpga/xilinx
+export XILINXD_LICENSE_FILE=2100@pokwinlic1.pok.ibm.com
+case $CRD in 
+  &apos;N250SP&apos;)   export VIV_VERSION=&quot;2017.3&quot;;;
+  *)          export VIV_VERSION=&quot;2016.4&quot;;;    
+esac
+source $XILINX_ROOT/Vivado/${VIV_VERSION}/settings64.sh
+
+echo &quot;****************************************************************************************&quot;
+echo &quot;Setup SNAP Build Environment ...&quot;
+echo &quot;****************************************************************************************&quot;
+cd ${SNAP_ROOT}
+echo &quot;export PSLSE_ROOT=$PSLSE_ROOT&quot; &gt;snap_env.sh
+echo &quot;export PSL_DCP=/afs/bb/proj/fpga/framework/cards/$CRD/current/b_route_design.dcp&quot; &gt;&gt;snap_env.sh
+echo &quot;************* Build Simulation Model ...&quot;
+echo &quot;printout env&quot;;cat snap_env.sh
+
+case $ACT in          # select config based on XSIM(not all defconfig avail yet) &amp; compile action
+  &quot;test&quot;)             ;;
+  &apos;hls_intersect_h&apos;)  make $CRD.hls_intersect.defconfig
+                      source ./snap_env.sh        # execute to exploit ACTION_ROOT
+                      echo &quot;action compile intersect hash&quot;;
+#                     make -C ${PSLSE_ROOT}/libcxl; 
+                      make -C ${ACTION_ROOT} clean config_h
+                      ;;
+  &apos;hls_intersect_s&apos;)  make $CRD.hls_intersect.defconfig
+                      source ./snap_env.sh        # execute to exploit ACTION_ROOT
+                      echo &quot;action compile intersect sort&quot;;
+#                     make -C ${PSLSE_ROOT}/libcxl; 
+                      make -C ${ACTION_ROOT} clean config_s
+                      ;;
+  *&quot;nvme&quot;*|*&quot;NVME&quot;*)  echo &quot;export SIMULATOR=nosim&quot; &gt;&gt; snap_env.sh
+                      make $CRD.$ACT.defconfig
+                      ;;
+  *)                  make $CRD.$ACT.defconfig;;
+esac
+
+case $ACT in
+  &quot;test&quot;)   
+    echo &quot;*T E S T  ******************************************************************************&quot;
+    IMAGE=&quot;&quot;
+    NOW=`date`
+    ;;
+  *)   
+    bsub $LSF -J &quot;${CRD}_${ACT}_config&quot; &quot;make image&quot;|| exit 100
+    echo &quot;****************************************************************************************&quot;
+    BINFILE=`ls $SNAP_ROOT/hardware/build/Images/*.bin`
+    IMAGE=&quot;/opt/fpga/snap/${CRD}/${ACT}/&quot;
+    echo &quot;COPY RESULTS $BINFILE to $IMAGE on tul2&quot;
+    rsync -tvh $BINFILE fpga@tul2:$IMAGE
+    NOW=`date`
+    IMAGE=&quot;/opt/fpga/snap/${CRD}/${ACT}/&quot;`basename $BINFILE`
+    echo &quot;****************************************************************************************&quot;
+    echo &quot;printout env&amp;config&quot;;cat snap_env.sh .snap_config.sh
+    #make clean
+    # The following step submits the Image Build to LSF, since it is very time consuming.
+    # execute on AFS with LSF, report error as unstable build
+    ;;
+esac
+
+
+########################## passing parameters between processes:  #############################
+# addons needed
+#   copy artifact
+#   environment injector (or envInject API ?)
+# upstream process 
+#   creates file=my_properties
+#   fills it with environment variables (properties, key=value)
+#   archives this file as artifact after execution
+#   triggers downstream process with predefined parameter PARENT=&lt;name of upstream process&gt;
+# downstream process
+#   grants permission to copy artifacts from  all upstream processes
+#   runs parametrized with default PARENT_JOB_NAME=&lt;name of downstream process&gt; in case there is no trigger from upstream
+#   (optionally) delete workspace before build starts, to prevent using old artifacts
+#   creates a default file=my_properties, in case there is no trigger from upstream
+#   copies(overwrites) the file from the PARENT_JOB_NAME with optional flag to allow missing file
+#   uses this file to inject environment variables
+cd $USERHOME
+pwd
+
+echo &quot;passing following properties by file:&quot;
+echo &quot;# File from SNAP_IMG_MATRIX&quot;   &gt; my_properties
+echo &quot;CARD_TO_TEST=$CRD&quot;            &gt;&gt; my_properties
+echo &quot;ACTION=$ACT&quot;                  &gt;&gt; my_properties
+echo &quot;IMAGE=$IMAGE&quot;                 &gt;&gt; my_properties
+echo &quot;DATE=$NOW&quot;                    &gt;&gt; my_properties
+echo &quot;PROJECT_NAME=${PROJECT_NAME}&quot; &gt;&gt; my_properties
+echo &quot;GIT_BRANCH=${GIT_BRANCH}&quot;     &gt;&gt; my_properties
+echo &quot;GIT_COMMIT=${GIT_COMMIT}&quot;     &gt;&gt; my_properties
+echo &quot;BULID_NUMBER=${BUILD_NUMBER}&quot; &gt;&gt; my_properties
+echo &quot;BULID_ID=${BUILD_ID}&quot;         &gt;&gt; my_properties
+echo &quot;# End of File&quot;                &gt;&gt; my_properties
+cat my_properties
+echo &quot;Exit with RC 0&quot;
+
+</command>
+      <unstableReturn>100</unstableReturn>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>my_properties</artifacts>
+      <allowEmptyArchive>true</allowEmptyArchive>
+      <onlyIfSuccessful>true</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>SNAP_Test_ON_tul2</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.0">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource"/>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>ERROR</state>
+            <message>Build Error</message>
+            <result>UNSTABLE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>false</cleanWhenUnstable>
+      <cleanWhenFailure>false</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.18">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>1200</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+    <touchStoneCombinationFilter>ACT==&quot;test&quot;</touchStoneCombinationFilter>
+    <touchStoneResultCondition>
+      <name>SUCCESS</name>
+      <ordinal>0</ordinal>
+      <color>BLUE</color>
+      <completeBuild>true</completeBuild>
+    </touchStoneResultCondition>
+  </executionStrategy>
+  <childCustomWorkspace>${COMBINATION}</childCustomWorkspace>
+</matrix-project>

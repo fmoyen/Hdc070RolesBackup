@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Try updating KU3 cards on tul5.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.3.2">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/donut</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>donut</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>true</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <jenkins.triggers.ReverseBuildTrigger>
+      <spec></spec>
+      <upstreamProjects>SNAP_IMG_KU3_DDR3</upstreamProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </jenkins.triggers.ReverseBuildTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;***************************************************************************************&quot;
+TESTBOX=tul5
+
+#
+# Set unique target directory such that parallel builds do not disturb each other.
+# Well, we might to clean up those from time to time ...
+#
+TARGET_DIR=&quot;${JOB_NAME}-${GIT_BRANCH}-${BUILD_NUMBER}&quot;
+export TARGET_DIR=`echo $TARGET_DIR | sed -e &apos;s/\//-/g&apos;`
+echo &quot;TARGET_DIR=${TARGET_DIR}&quot;
+
+#
+# genwqe-user.git
+#
+rsync -az --delete donut/ fpga@${TESTBOX}:${TARGET_DIR}
+
+echo &quot;System info ...&quot;
+ssh fpga@${TESTBOX} lsb_release -a
+ssh fpga@${TESTBOX} dmesg -T &gt; dmesg_before_test.txt
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Build the software part ...&quot;
+echo &quot;***************************************************************************************&quot;
+
+ssh fpga@${TESTBOX} make -C ${TARGET_DIR}
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Execute standard tests ...&quot;
+echo &quot;***************************************************************************************&quot;
+
+ssh fpga@${TESTBOX} &lt;&lt; EOF
+    export TERM=vt100
+    
+    dmesg -T &gt; ${TARGET_DIR}/dmesg_before_test.txt
+    cd ${TARGET_DIR}
+    for accel in KU3 ; do
+    	echo &quot;Accelerator: \${accel} ...&quot;
+        for card in \`./software/tools/snap_find_card -A \${accel}\` ; do
+
+			echo &quot;CHECKING CARD VERSION BEFORE UPDATE ...&quot;
+            ./software/tools/dnut_peek -C0 0x0
+            ./software/tools/dnut_peek -C0 0x8
+
+            echo &quot;USING THE FOLLOWING BITSTREAM FOR \${accel} CARD \${card}&quot;
+            ls -l /opt/fpga/snap/ku3/*
+            
+            echo &quot;UPDATING CARD WITHOUT SAFETY NET ...&quot;
+            # sudo capi-flash-script -C \${card} -f /opt/fpga/snap/ku3/psl_fpga_flash.bin
+        
+            echo &quot;CHECKING CARD VERSION AFTER UPDATE ...&quot;
+            ./software/tools/dnut_peek -C0 0x0
+            ./software/tools/dnut_peek -C0 0x8
+        done
+    done
+EOF
+
+echo &quot;***************************************************************************************&quot;
+echo &quot;Wrap results ...&quot;
+echo &quot;***************************************************************************************&quot;
+
+ssh fpga@${TESTBOX} &lt;&lt; EOF
+    dmesg -T &gt; ${TARGET_DIR}/dmesg_after_test.txt
+	tar cfz ${TARGET_DIR}.tar.gz ${TARGET_DIR}
+    echo &quot;.... rm -rf ${TARGET_DIR}&quot;
+    rm -rf ${TARGET_DIR}
+EOF
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.5">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>

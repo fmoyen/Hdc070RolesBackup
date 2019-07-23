@@ -1,0 +1,234 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Quick build check on an old RHEL6.4 x86 installation. Using pslse libcxl to enable the Intel build.&#xd;
+This step should always work.&#xd;
+Archive artifacts and Trigger SNAP_Test_ON_tul2 if this test was ok.&#xd;
+&#xd;
+Contact: Frank Haverkamp &lt;haverkam@de.ibm.com&gt;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>3</daysToKeep>
+        <numToKeep>50</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+      <projectUrl>https://github.com/open-power/donut/</projectUrl>
+      <displayName>donut</displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/open-power/donut</url>
+        <credentialsId>fhaverkamp</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>master</name>
+      </hudson.plugins.git.BranchSpec>
+      <hudson.plugins.git.BranchSpec>
+        <name>*HLS*</name>
+      </hudson.plugins.git.BranchSpec>
+      <hudson.plugins.git.BranchSpec>
+        <name>*SW*</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+        <relativeTargetDir>snap</relativeTargetDir>
+      </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
+      <hudson.plugins.git.extensions.impl.CleanCheckout/>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+      <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+    </extensions>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
+      <spec></spec>
+    </com.cloudbees.jenkins.GitHubPushTrigger>
+    <hudson.triggers.SCMTrigger>
+      <spec>H * * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>echo &quot;Checking build directory ...&quot;
+pwd
+export   HOMEDIR=`pwd`
+whoami
+echo $PATH
+export PATH=$PATH:/usr/local/bin
+echo &quot;****************************************************************************************&quot;
+
+echo &quot;Get and build Simulation Software ...&quot;
+rm -rf pslse
+
+# FIXME Temporally use a fixed up version of PSLSE
+# git clone https://github.com/ibm-capi/pslse pslse
+git clone https://github.com/ibm-capi/pslse.git pslse
+make -C pslse/libcxl PSLVER=8
+export LD_LIBRARY_PATH=`pwd`/pslse/libcxl:$LD_LIBRARY_PATH
+
+echo &quot;Build SNAP Software ...&quot;
+make -C snap clean
+make -C snap/software
+make -C snap test
+make -C snap/software test_software
+
+if [ -d snap/actions ]; then
+	make -C snap/actions
+fi
+
+NOW=`date`
+# Select Card if Image Test with same software, enable only one of the 3 lines below
+CARD=ALL
+# CARD=FGT
+# CARD=KU3
+
+# IMAGE can be a single file, or a list of bin files or empty
+# IMAGE=&quot;/opt/fpga/snap/$CARD/hdl_example/fw_2017_0731_1545_SDRAM_FGT_15.bin&quot;
+IMAGE=&quot;&quot;
+
+########################## passing parameters between processes:  #############################
+# addons needed
+#   copy artifact
+#   environment injector (or envInject API ?)
+# upstream process 
+#   creates file=my_properties
+#   fills it with environment variables (properties, key=value)
+#   archives this file as artifact after execution
+#   triggers downstream process with predefined parameter PARENT=&lt;name of upstream process&gt;
+# downstream process
+#   grants permission to copy artifacts from  all upstream processes
+#   runs parametrized with default PARENT_JOB_NAME=&lt;name of downstream process&gt; in case there is no trigger from upstream
+#   (optionally) delete workspace before build starts, to prevent using old artifacts
+#   creates a default file=my_properties, in case there is no trigger from upstream
+#   copies(overwrites) the file from the PARENT_JOB_NAME with optional flag to allow missing file
+#   uses this file to inject environment variables
+
+echo &quot;passing following properties by file:&quot;
+echo &quot;# File from SNAP_Software&quot;    &gt; $HOMEDIR/my_properties
+echo &quot;# Note: IMAGE can be empty&quot;   &gt;&gt; $HOMEDIR/my_properties
+echo &quot;CARD_TO_TEST=$CARD&quot;           &gt;&gt; $HOMEDIR/my_properties
+echo &quot;IMAGE=$IMAGE&quot;                 &gt;&gt; $HOMEDIR/my_properties
+echo &quot;DATE=$NOW&quot;                    &gt;&gt; $HOMEDIR/my_properties
+echo &quot;PROJECT_NAME=${PROJECT_NAME}&quot; &gt;&gt; $HOMEDIR/my_properties
+echo &quot;JOB_NAME=${JOB_NAME}&quot;         &gt;&gt; $HOMEDIR/my_properties
+echo &quot;GIT_BRANCH=${GIT_BRANCH}&quot;     &gt;&gt; $HOMEDIR/my_properties
+echo &quot;GIT_COMMIT=${GIT_COMMIT}&quot;     &gt;&gt; $HOMEDIR/my_properties
+echo &quot;BUILD_NUMBER=${BUILD_NUMBER}&quot; &gt;&gt; $HOMEDIR/my_properties
+echo &quot;# End of File&quot;                &gt;&gt; $HOMEDIR/my_properties</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>my_properties</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+    </hudson.tasks.ArtifactArchiver>
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.1">
+      <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
+      <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
+      <contextSource class="org.jenkinsci.plugins.github.status.sources.ManuallyEnteredCommitContextSource">
+        <context>${PROJECT_NAME} ${GIT_BRANCH}</context>
+      </contextSource>
+      <statusResultSource class="org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource">
+        <results>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>SUCCESS</state>
+            <message>SUCCESS</message>
+            <result>SUCCESS</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+            <state>FAILURE</state>
+            <message>FAILURE</message>
+            <result>FAILURE</result>
+          </org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult>
+          <org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+            <state>PENDING</state>
+            <message>PENDING</message>
+          </org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult>
+        </results>
+      </statusResultSource>
+      <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
+      <errorHandlers/>
+    </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+      <baseUrl></baseUrl>
+      <teamDomain>capi-snap</teamDomain>
+      <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
+      <authTokenCredentialId></authTokenCredentialId>
+      <botUser>false</botUser>
+      <room>#snap_jenkins</room>
+      <startNotification>true</startNotification>
+      <notifySuccess>true</notifySuccess>
+      <notifyAborted>true</notifyAborted>
+      <notifyNotBuilt>true</notifyNotBuilt>
+      <notifyUnstable>true</notifyUnstable>
+      <notifyRegression>false</notifyRegression>
+      <notifyFailure>true</notifyFailure>
+      <notifyBackToNormal>true</notifyBackToNormal>
+      <notifyRepeatedFailure>true</notifyRepeatedFailure>
+      <includeTestSummary>true</includeTestSummary>
+      <includeFailedTests>false</includeFailedTests>
+      <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
+      <includeCustomMessage>false</includeCustomMessage>
+      <customMessage></customMessage>
+    </jenkins.plugins.slack.SlackNotifier>
+    <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.35.2">
+      <configs>
+        <hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+          <configs>
+            <hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+              <properties>PARENT_JOB_NAME=SNAP_Software
+CONFIG=SNAP_Software
+USE_CARD=ALL</properties>
+              <textParamValueOnNewLine>false</textParamValueOnNewLine>
+            </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
+            <hudson.plugins.git.GitRevisionBuildParameters plugin="git@3.7.0">
+              <combineQueuedCommits>false</combineQueuedCommits>
+            </hudson.plugins.git.GitRevisionBuildParameters>
+          </configs>
+          <projects>SNAP_Test_ON_tul2</projects>
+          <condition>SUCCESS</condition>
+          <triggerWithNoParameters>false</triggerWithNoParameters>
+          <triggerFromChildProjects>false</triggerFromChildProjects>
+        </hudson.plugins.parameterizedtrigger.BuildTriggerConfig>
+      </configs>
+    </hudson.plugins.parameterizedtrigger.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+      <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>
