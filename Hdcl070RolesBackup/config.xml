@@ -72,17 +72,14 @@ cd $JobsDir
 for i in $(find . -name config.xml -print)
 do
   dir=$(dirname $i | cut -c3-)
-  echo $dir
+  #echo $dir
   mkdir -p $GitRepo/$dir
   cp --preserve=all $i $GitRepo/$dir
 done
 
-echo
-echo &quot;--&gt; Updated Git repository $GitRepo&quot;
-cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
-
-git config --global user.email &quot;fabrice_moyen@fr.ibm.com&quot;
-git config --global user.name &quot;MOYEN&quot;
+#echo
+#echo &quot;--&gt; Updated Git repository $GitRepo&quot;
+#cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
 
 echo
 echo &quot;--&gt; Commit&quot;
