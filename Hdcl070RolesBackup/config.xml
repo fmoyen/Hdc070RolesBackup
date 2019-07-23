@@ -60,10 +60,14 @@ GitRepo=$PWD
 git checkout $BRANCH
 
 echo; echo &quot;--&gt; Jenkins jobs config $JobsDir&quot;
-cd $JobsDir; find . -name config.xml -exec ls -latr {} +;
+cd $JobsDir
+echo &quot;...&quot;;echo &quot;...&quot;
+find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Git repository directory $GitRepo&quot;
-cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
+cd $GitRepo
+echo &quot;...&quot;;echo &quot;...&quot;
+find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Copy jenkins jobs config.xml files to git repository directory&quot;
 cd $JobsDir
@@ -86,7 +90,6 @@ git commit -a --file=/tmp/msg.txt
 rm /tmp/msg.txt
 
 echo; echo &quot;--&gt; Push&quot;
-git config --global push.default matching
 git push
 </command>
     </hudson.tasks.Shell>
