@@ -62,13 +62,13 @@ git checkout $BRANCH
 echo; echo &quot;--&gt; Jenkins jobs config $JobsDir&quot;
 cd $JobsDir
 JobsCount=`find . -name config.xml -exec ls -latr {} + | wc -l`
-echo &quot;($JobsCount config files)&quot;
+echo &quot;$JobsCount config files... The 20th last files are:&quot;
 echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Git repository directory $GitRepo&quot;
 cd $GitRepo
 GitCount=`find . -name config.xml -exec ls -latr {} + | wc -l`
-echo &quot;($GitCount config files)&quot;
+echo &quot;$GitCount config files... The 20th last files are:&quot;
 echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Copy jenkins jobs config.xml files to git repository directory&quot;
