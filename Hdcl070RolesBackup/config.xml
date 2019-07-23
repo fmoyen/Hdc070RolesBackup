@@ -61,13 +61,11 @@ git checkout $BRANCH
 
 echo; echo &quot;--&gt; Jenkins jobs config $JobsDir&quot;
 cd $JobsDir
-echo &quot;...&quot;;echo &quot;...&quot;
-find . -name config.xml -exec ls -latr {} + | tail -20
+echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Git repository directory $GitRepo&quot;
 cd $GitRepo
-echo &quot;...&quot;;echo &quot;...&quot;
-find . -name config.xml -exec ls -latr {} + | tail -20
+echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -20
 
 echo; echo &quot;--&gt; Copy jenkins jobs config.xml files to git repository directory&quot;
 cd $JobsDir
@@ -78,6 +76,8 @@ do
   mkdir -p $GitRepo/$dir
   cp --preserve=all $i $GitRepo/$dir
 done
+
+echo
 
 #echo; echo &quot;--&gt; Updated Git repository $GitRepo&quot;
 #cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
