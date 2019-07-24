@@ -77,7 +77,7 @@ echo &quot;$GitCount config files... The $DisplayCount last files are:&quot;
 echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -$DisplayCount
 
 echo; echo &quot;--&gt; Copy jenkins jobs config.xml files to git repository directory&quot;
-echo &quot;    and generating scriptX.sh files (\&quot;Build/execute shell\&quot; shell scripts)&quot;
+#echo &quot;    and generating scriptX.sh files (\&quot;Build/execute shell\&quot; shell scripts)&quot;
 cd $JobsDir
 for i in $(find . -name config.xml -print)
 do
