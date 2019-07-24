@@ -77,6 +77,7 @@ echo &quot;$GitCount config files... The $DisplayCount last files are:&quot;
 echo &quot;...&quot;; find . -name config.xml -exec ls -latr {} + | tail -$DisplayCount
 
 echo; echo &quot;--&gt; Copy jenkins jobs config.xml files to git repository directory&quot;
+echo &quot;    and generating scriptX.sh files (\&quot;Build/execute shell\&quot; shell scripts)&quot;
 cd $JobsDir
 for i in $(find . -name config.xml -print)
 do
@@ -84,9 +85,17 @@ do
   #echo $dir
   mkdir -p $GitRepo/$dir
   cp --preserve=all $i $GitRepo/$dir
+  
+  count=`grep -c &quot;&lt;command&gt;&quot; $GitRepo/$dir/config.xml`
+  for i in `seq 1 $count`
+  do
+    xmllint --xpath &quot;(//*/builders/hudson.tasks.Shell/command)[$i]&quot; $GitRepo/$dir/config.xml 2&gt;/dev/null \
+    | xmllint --xpath &quot;string(/command)&quot; - &gt; $GitRepo/$dir/script${i}.sh
+  done
 done
 
 echo
+
 
 #echo; echo &quot;--&gt; Updated Git repository $GitRepo&quot;
 #cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
