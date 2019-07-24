@@ -441,6 +441,8 @@ echo &quot;*********************************************************************
 echo &quot;J:Get PSL Simulation Environment ...&quot;
 echo &quot;current path is :&quot;
 pwd
+echo &quot;size of current volume data:&quot;
+fs lq
 rm -rf pslse
 # PSLVER=8/9 merged in branch=capi2 since 05Mar2018, selected by snap_env.sh
 git clone https://github.com/ibm-capi/pslse pslse
