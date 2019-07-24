@@ -58,7 +58,7 @@ pwd
 
 #echo; cat .ssh/id_rsa.pub
 
-ssh -T -ai ~/.ssh/id_rsa git@github.com
+#ssh -T -ai ~/.ssh/id_rsa git@github.com
 
 #echo; echo &quot;authorized_keys:&quot;
 #cat .ssh/authorized_keys
@@ -68,27 +68,27 @@ echo &quot;#####################################&quot;
 #######################################
 # Jobs investigation &amp; backup
 
-JobsDir=&quot;/var/lib/jenkins/jobs&quot;
-Job=&quot;SNAP_SIM_matrix&quot;
-Workspace=$PWD
+#JobsDir=&quot;/var/lib/jenkins/jobs&quot;
+#Job=&quot;SNAP_SIM_matrix&quot;
+#Workspace=$PWD
 
-echo -e &quot;--&gt; User: \c&quot;
-whoami
-echo -e &quot;--&gt; Homedir: \c&quot;
-echo $HOME
-echo -e &quot;--&gt; Workspace: \c&quot;
-echo $Workspace
-echo
-echo &quot;--&gt; jobs directory $JobsDir&quot;
+#echo -e &quot;--&gt; User: \c&quot;
+#whoami
+#echo -e &quot;--&gt; Homedir: \c&quot;
+#echo $HOME
+#echo -e &quot;--&gt; Workspace: \c&quot;
+#echo $Workspace
+#echo
+#echo &quot;--&gt; jobs directory $JobsDir&quot;
 #ls -la $JobsDir
-echo
+#echo
 #cd $JobsDir; find . -name config.xml -exec ls -latr {} +;
-echo
-du -sh $JobsDir
+#echo
+#du -sh $JobsDir
 
-echo
-echo &quot;--&gt; Job $Job&quot;
-du -sh $JobsDir/$Job
+#echo
+#echo &quot;--&gt; Job $Job&quot;
+#du -sh $JobsDir/$Job
 
 #cd $JobsDir
 #tar czf $Workspace/$Job.tar.gz ./$Job
@@ -128,29 +128,29 @@ du -sh $JobsDir/$Job
 #######################################
 # SSH &amp; AFS investigation
 
-#TESTBOXES=( ${boeBoxes[*]} ${mopBoxes[*]}) # init array of systems
-#echo &quot;------------------------------------&quot;
-#echo &quot;~/.ssh/config&quot;
-#echo
-#cat ~/.ssh/config
-#echo &quot;------------------------------------&quot;
+TESTBOXES=( ${boeBoxes[*]} ${mopBoxes[*]}) # init array of systems
+echo &quot;------------------------------------&quot;
+echo &quot;~/.ssh/config&quot;
+echo
+cat ~/.ssh/config
+echo &quot;------------------------------------&quot;
 
-#RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
-#if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
+RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
       
-#for box in &quot;${TESTBOXES[@]}&quot;;do
+for box in &quot;${TESTBOXES[@]}&quot;;do
       
-# if [[ ${mopBoxes[*]} =~ $box ]]
-# then
-#   # $box is a Montpellier server
-#   RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
-# else
-#   # $box is a Boeblingen server, accessible through dim1 system
-#   RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
-# fi
+ if [[ ${mopBoxes[*]} =~ $box ]]
+ then
+   # $box is a Montpellier server
+   RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+ else
+   # $box is a Boeblingen server, accessible through dim1 system
+   RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+ fi
       
-# if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
-#done</command>
+ if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
+done</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
