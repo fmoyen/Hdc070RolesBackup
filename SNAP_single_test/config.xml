@@ -45,7 +45,7 @@ for Questions: contact J.Kayser, A.Castellane or F.Moyen</description>
 Marennes is a P8 (CAPI1 cards)
 Brahma and lewen05 and yob594 are P9 (CAPI2.0 cards)
 brahma marennes lewen05</description>
-          <defaultValue>brahma lewen05</defaultValue>
+          <defaultValue>brahma lewen05 yob594</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
@@ -55,6 +55,11 @@ bug : watch out N250SP containing N250S string, remove N250S card for N250SP tes
           <defaultValue>N250SP AD9V3</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>OpenCAPI</name>
+          <description>Testing OpenCAPI codes</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
@@ -343,6 +348,18 @@ else
 	RUN+=&quot; -D ${TARGET_DIR}&quot;
 	if [ -z ${BoeIMGFile} ]; then RUN+=&quot; -A ALL&quot;;else RUN+=&quot; -F ${ExecutorIMGRootDir}/$CRD/$IMGFileName -A ${CRD} -C $cardid&quot;;fi
 fi
+
+
+#------------------------------------------------------------------------------------------------------------------------------
+#TEST AC for OC
+
+if [ &quot;$OpenCAPI&quot; -eq &quot;1&quot; ];then
+echo &quot;testing snap_maint for OC-AD9V3&quot;
+ssh $box ./snap_find_card -A OC-AD9V3
+echo &quot;RETURN CODE FROM snap_maint is : ${RC}
+exit 1
+#------------------------------------------------------------------------------------------------------------------------------
+
 
 #------------------------------------------------------------------------------------------------------------------------------
 # Build the software into $TARGET_DIR on the $box
