@@ -88,42 +88,31 @@ done
 
 echo; echo &quot;--&gt; Building the ScriptGenerator.bash which allows you to extract Execute Shell scripts&quot;  
 cat &lt;&lt; &apos;EOF&apos; &gt; $GitRepo/ScriptsGenerator.bash
-echo
-echo &quot;GENERATING SHELL SCRIPTS USED IN config.xml FILES...&quot;
-echo
+  echo
+  echo &quot;GENERATING SHELL SCRIPTS USED IN config.xml FILES...&quot;
+  echo
 
-for i in $(find . -name config.xml -print)
-do
-  dir=$(dirname $i | cut -c3-)
-  count=`grep -c &quot;&lt;command&gt;&quot; ./$dir/config.xml`
-if [ $count -gt 0 ]
-then
-  echo -e &quot;$i     --&gt; Count=$count&quot;
-  for j in `seq 1 $count`
+  for i in $(find . -name config.xml -print)
   do
-    xmllint --xpath &quot;(//*/builders/hudson.tasks.Shell/command)[$j]&quot; ./$dir/config.xml 2&gt;/dev/null \
-    | xmllint --xpath &quot;string(/command)&quot; - &gt; ./$dir/script${j}.sh
+    dir=$(dirname $i | cut -c3-)
+    count=`grep -c &quot;&lt;command&gt;&quot; ./$dir/config.xml`
+  if [ $count -gt 0 ]
+  then
+    echo -e &quot;$i     --&gt; Count=$count&quot;
+    for j in `seq 1 $count`
+    do
+      xmllint --xpath &quot;(//*/builders/hudson.tasks.Shell/command)[$j]&quot; ./$dir/config.xml 2&gt;/dev/null \
+      | xmllint --xpath &quot;string(/command)&quot; - &gt; ./$dir/script${j}.sh
+    done
+  fi
   done
-fi
-done
 
-echo
-echo &quot;...DONE&quot;
-echo
+  echo
+  echo &quot;...DONE&quot;
+  echo
 EOF
 
-chmod +x ./ScriptsGenerator.bash
-
-  count=`grep -c &quot;&lt;command&gt;&quot; $GitRepo/$dir/config.xml`
-  for i in `seq 1 $count`
-  do
-    xmllint --xpath &quot;(//*/builders/hudson.tasks.Shell/command)[$i]&quot; $GitRepo/$dir/config.xml 2&gt;/dev/null \
-    | xmllint --xpath &quot;string(/command)&quot; - &gt; $GitRepo/$dir/script${i}.sh
-  done
-
-
-echo
-
+chmod +x $GitRepo/ScriptsGenerator.bash
 
 #echo; echo &quot;--&gt; Updated Git repository $GitRepo&quot;
 #cd $GitRepo; find . -name config.xml -exec ls -latr {} +;
