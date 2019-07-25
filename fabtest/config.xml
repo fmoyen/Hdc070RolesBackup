@@ -128,29 +128,47 @@ echo &quot;#####################################&quot;
 #######################################
 # SSH &amp; AFS investigation
 
-TESTBOXES=( ${boeBoxes[*]} ${mopBoxes[*]}) # init array of systems
-echo &quot;------------------------------------&quot;
-echo &quot;~/.ssh/config&quot;
-echo
-cat ~/.ssh/config
-echo &quot;------------------------------------&quot;
+#TESTBOXES=( ${boeBoxes[*]} ${mopBoxes[*]}) # init array of systems
+#echo &quot;------------------------------------&quot;
+#echo &quot;~/.ssh/config&quot;
+#echo
+#cat ~/.ssh/config
+#echo &quot;------------------------------------&quot;
 
-RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
-if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
+#RC=0;ssh dim1 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 ||RC=$?
+#if [ $RC == &quot;0&quot; ]; then echo &quot;dim1 ping ok&quot;; else echo &quot;dim1 not reachable&quot;;exit 1;fi
       
-for box in &quot;${TESTBOXES[@]}&quot;;do
+#for box in &quot;${TESTBOXES[@]}&quot;;do
       
- if [[ ${mopBoxes[*]} =~ $box ]]
- then
-   # $box is a Montpellier server
-   RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
- else
-   # $box is a Boeblingen server, accessible through dim1 system
-   RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
- fi
+# if [[ ${mopBoxes[*]} =~ $box ]]
+# then
+#   # $box is a Montpellier server
+#   RC=0;ssh $box ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+# else
+#   # $box is a Boeblingen server, accessible through dim1 system
+#   RC=0;ssh dim1 ping $box -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$?
+# fi
       
- if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
-done</command>
+# if [ $RC == &quot;0&quot; ]; then echo &quot;$box ping ok&quot;; else echo &quot;$box not reachable&quot;;continue;fi
+#done
+
+#################################
+# du -sh 
+echo
+cd /var/lib/jenkins
+pwd
+echo; echo &quot;du -sh &quot;
+du -sh .
+echo
+du -sh *
+echo; echo &quot;du -sk | sort -n&quot;
+du -sk * | sort -n
+echo;echo &quot;df -h &quot;
+df -h /var/lib/jenkins
+
+
+echo; echo &quot;lsof&quot;
+lsof | grep &apos;(deleted)&apos;</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>

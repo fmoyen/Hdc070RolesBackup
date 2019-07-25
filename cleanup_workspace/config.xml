@@ -36,23 +36,30 @@
 #
 #find /var/lib/jenkins/jobs/*/builds/*   -ctime &quot;+5&quot; -delete
 #find /var/lib/jenkins/workspace/*       -ctime &quot;+5&quot; -delete$
-cd /data/SNAP_Images
-echo &quot;Before cleaning:&quot;
-du -sh *
+#ls -al /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/AD9V3_nCL/builds/194
+#rm /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/N250SP_nCL/builds/194/log
+#rm -rf /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/U200_nCL/builds/194/
+#ls -al /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/AD9V3_nCL/builds/194
+rm -rf /afs/vlsilab.boeblingen.ibm.com/proj/fpga/framework/CI_ws/SNAP_IMG_CAPI2_matrix/snap_make_u200/ACT/hdl_example.NORAM
+cd /var/lib/ 
 du -sh
-find /data/SNAP_Images/AD9V3_missing/*      -ctime &quot;+60&quot; -delete
+#cd /data/SNAP_Images
+#echo &quot;Before cleaning:&quot;
+#du -sh *
+#du -sh
+#find /data/SNAP_Images/AD9V3_missing/*      -ctime &quot;+60&quot; -delete
 #find /data/SNAP_Images/S121B_missing/*      -ctime &quot;+30&quot; -delete
 #find /data/SNAP_Images/N250SP_missing/*     -ctime &quot;+60&quot; -delete
-find /data/SNAP_Images/S241_missing/*       -ctime &quot;+30&quot; -delete
-find /data/SNAP_Images/FX609_missing/*      -ctime &quot;+30&quot; -delete
-find /data/SNAP_Images/RCXVUP_missing/*     -ctime &quot;+30&quot; -delete
-find /data/SNAP_Images/card_not_avail/*     -ctime &quot;+60&quot; -delete
-find /data/SNAP_Images/AD9V3_FACTORY_MCS/*  -ctime &quot;+30&quot; -delete
+#find /data/SNAP_Images/S241_missing/*       -ctime &quot;+30&quot; -delete
+#find /data/SNAP_Images/FX609_missing/*      -ctime &quot;+30&quot; -delete
+#find /data/SNAP_Images/RCXVUP_missing/*     -ctime &quot;+30&quot; -delete
+#find /data/SNAP_Images/card_not_avail/*     -ctime &quot;+60&quot; -delete
+#find /data/SNAP_Images/AD9V3_FACTORY_MCS/*  -ctime &quot;+30&quot; -delete
 #find /data/SNAP_Images/N250SP_FACTORY_MCS/* -ctime &quot;+30&quot; -delete
-find /data/SNAP_Images/no_test_required/*   -ctime &quot;+30&quot; -delete
-echo &quot;After cleaning:&quot;
-du -sh *
-du- sh
+#find /data/SNAP_Images/no_test_required/*   -ctime &quot;+30&quot; -delete
+#echo &quot;After cleaning:&quot;
+#du -sh *
+#du- sh
 
 
 # rm -f /data/SNAP_Images/AD9V3_missing/*
