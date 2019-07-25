@@ -254,6 +254,16 @@ for loop in `seq 1 $maxloop`;do
     fi
 
     echo &quot;J:getting ${CRD} card position on ${box}:&quot;
+
+#TEST AC for OC
+if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
+	echo &quot;testing snap_maint for OC-AD9V3&quot;
+	ssh $box ./snap_find_card -A OC-AD9V3
+	echo &quot;RETURN CODE FROM snap_maint is : ${RC}&quot;
+	exit 1
+fi
+
+
     found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD}`||found=$?
     hours=`date +%H`
 	  echo &quot;`date` loop=$loop box=$box nusers=$nusers card=$CRD snap_find_card found=$found&quot;
@@ -353,11 +363,12 @@ fi
 #------------------------------------------------------------------------------------------------------------------------------
 #TEST AC for OC
 
-if [ &quot;$OpenCAPI&quot; -eq &quot;1&quot; ];then
-echo &quot;testing snap_maint for OC-AD9V3&quot;
-ssh $box ./snap_find_card -A OC-AD9V3
-echo &quot;RETURN CODE FROM snap_maint is : ${RC}
-exit 1
+if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
+	echo &quot;testing snap_maint for OC-AD9V3&quot;
+	ssh $box ./snap_find_card -A OC-AD9V3
+	echo &quot;RETURN CODE FROM snap_maint is : ${RC}&quot;
+	exit 1
+fi
 #------------------------------------------------------------------------------------------------------------------------------
 
 
