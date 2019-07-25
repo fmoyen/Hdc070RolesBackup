@@ -86,6 +86,8 @@ do
   cp --preserve=all $i $GitRepo/$dir
 done
 
+echo
+
 echo; echo &quot;--&gt; Building the ScriptGenerator.bash which allows you to extract Execute Shell scripts&quot;  
 cat &lt;&lt; &apos;EOF&apos; &gt; $GitRepo/ScriptsGenerator.bash
   #!/bin/bash
