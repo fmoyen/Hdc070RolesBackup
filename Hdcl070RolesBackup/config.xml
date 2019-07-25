@@ -88,6 +88,7 @@ done
 
 echo; echo &quot;--&gt; Building the ScriptGenerator.bash which allows you to extract Execute Shell scripts&quot;  
 cat &lt;&lt; &apos;EOF&apos; &gt; $GitRepo/ScriptsGenerator.bash
+  #!/bin/bash
   echo
   echo &quot;GENERATING SHELL SCRIPTS USED IN config.xml FILES...&quot;
   echo

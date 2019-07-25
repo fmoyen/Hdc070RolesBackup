@@ -1,3 +1,4 @@
+  #!/bin/bash
   echo
   echo "GENERATING SHELL SCRIPTS USED IN config.xml FILES..."
   echo
