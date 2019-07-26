@@ -50,7 +50,7 @@ more known_hosts
 #mv config config.orig2
 #cp /afs/bb/proj/fpga/framework/config .
 #more config
-#ssh-keyscan -H yob594 &gt;&gt; ~/.ssh/known_hosts
+ssh-keyscan -H 10.3.76.24 &gt;&gt; ~/.ssh/known_hosts
 #ping -c2 10.7.12.50
 #ping -c2 brahma
 #ping -c2 lewen5

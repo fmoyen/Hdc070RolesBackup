@@ -262,7 +262,7 @@ for loop in `seq 1 $maxloop`;do
     
     #TEST AC for OC
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
-	echo &quot;J:testing snap_maint for OC-AD9V3&quot;
+	echo &quot;J:testing snap_maint for OC-${CRD}&quot;
         cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card.01 -A OC-${CRD}`||found=$?
 	#ssh fpga@${box} ./snap_find_card.01 -A OC-AD9V3
 	#echo &quot;J:RETURN CODE FROM snap_maint is : ${RC}&quot;
@@ -367,27 +367,19 @@ fi
 
 
 #------------------------------------------------------------------------------------------------------------------------------
-#TEST AC for OC
-
-if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
-	echo &quot;testing snap_maint for OC-AD9V3&quot;
-	ssh $box ./snap_find_card -A OC-AD9V3
-	echo &quot;RETURN CODE FROM snap_maint is : ${RC}&quot;
-	exit 1
-fi
-#------------------------------------------------------------------------------------------------------------------------------
-
-
-#------------------------------------------------------------------------------------------------------------------------------
 # Build the software into $TARGET_DIR on the $box
 
 echo &quot;***************************************************************************************&quot;
 echo &quot;Build the software and actions on $box in $TARGET_DIR...&quot;
 ssh $box make -C ${TARGET_DIR} clean software actions
 
-echo  &quot;copy new snap_find_card to homedir&quot;;  
-ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
 
+if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
+	echo &quot;J: In OC we rely on local snap_find_card for OC&quot;
+else # CAPI2 MODE
+	echo  &quot;CAPI2 mode : copy new snap_find_card to homedir&quot;;  
+	ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
+fi
 #------------------------------------------------------------------------------------------------------------------------------
 # Execute the $RUN command on the $box
 
