@@ -258,7 +258,7 @@ for loop in `seq 1 $maxloop`;do
 #TEST AC for OC
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
 	echo &quot;testing snap_maint for OC-AD9V3&quot;
-	ssh $box ./snap_find_card -A OC-AD9V3
+	ssh fpga@${box} ./snap_find_card -A OC-AD9V3
 	echo &quot;RETURN CODE FROM snap_maint is : ${RC}&quot;
 	exit 1
 fi
