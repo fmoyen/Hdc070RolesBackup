@@ -39,18 +39,18 @@
 # mkdir AD9V3_missing
 # chmod 750 AD9V3_missing
 
-#cd 
-#ls -al
+cd 
+ls -al
 #rm core.*
-#cd .ssh
-#ls -al
-#more config
+cd .ssh
+ls -al
+more config
 #more config.orig
-#more known_hosts
+more known_hosts
 #mv config config.orig2
 #cp /afs/bb/proj/fpga/framework/config .
 #more config
-#ssh-keyscan -H lewen5 &gt;&gt; ~/.ssh/known_hosts
+#ssh-keyscan -H yob594 &gt;&gt; ~/.ssh/known_hosts
 #ping -c2 10.7.12.50
 #ping -c2 brahma
 #ping -c2 lewen5
@@ -95,9 +95,10 @@
 
 #manual Directory creation (now it should be done in CAPI2 script)
 #mv /data/Images/U200_missing /data/Images/U200_image.bin
-CRD=U200
-DIR=${CRD}_missing
-mkdir -p /data/Images/${DIR}
+
+#CRD=U200
+#DIR=${CRD}_missing
+#mkdir -p /data/Images/${DIR}
 
 
 #cd /data/Images
