@@ -2,7 +2,8 @@
 <project>
   <actions/>
   <description>transfer an already built image to the right card and test it&#xd;
-for Questions: contact J.Kayser, A.Castellane or F.Moyen</description>
+for Questions: contact J.Kayser, A.Castellane or F.Moyen&#xd;
+OC is using OC-SNAP &quot;jenkins_mode&quot; branch for the moment</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <jenkins.model.BuildDiscarderProperty>
@@ -340,7 +341,13 @@ ssh $box tail -n8 jenkins.log
 	pwd=`pwd`
 	echo &quot;pwd=$pwd&quot;
 	TARGET_DIR=&quot;`basename $pwd`-${ReducedFileName}-${BUILD_NUMBER}&quot;
-	RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+    
+    if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
+    		RUN=&quot;./actions/scripts/oc_snap_jenkins.sh&quot;
+    else
+		RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+    fi
+    
 	echo &quot;create project dir, if not avail&quot;;      ssh $box mkdir -p ${TARGET_DIR}
     echo &quot;listing home dir on ${box}:&quot;;ssh fpga@${box} ls -al
 
@@ -348,7 +355,7 @@ if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
 	echo &quot;J: In OC we need to get the OC-SNAP from ibm&apos;s github&quot;
     echo &quot;J: In OC we rely on local snap_find_card for OC, (using acastellane .ssh config to get code)&quot;
     ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot;
-    ssh fpga@${box} &quot;cd ${TARGET_DIR};make all&quot;
+    ssh fpga@${box} &quot;cd ${TARGET_DIR};git checkout jenkins_mods&quot;
     echo &quot;J: oc-snap directory prepared&quot;
 else # CAPI2 MODE
 
