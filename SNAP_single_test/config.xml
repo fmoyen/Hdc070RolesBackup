@@ -347,8 +347,8 @@ ssh $box tail -n8 jenkins.log
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
 	echo &quot;J: In OC we need to get the OC-SNAP from ibm&apos;s github&quot;
     echo &quot;J: In OC we rely on local snap_find_card for OC, (using acastellane .ssh config to get code)&quot;
-    ssh fpga@${box} &quot;cd ${TARGET_DIR};git clone git@github.ibm.com:OC-Enablement/oc-snap.git&quot;
-    ssh fpga@${box} &quot;cd ${TARGET_DIR}/oc-snap;make all&quot;
+    ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot;
+    ssh fpga@${box} &quot;cd ${TARGET_DIR};make all&quot;
     echo &quot;J: oc-snap directory prepared&quot;
 else # CAPI2 MODE
 
@@ -379,16 +379,9 @@ fi
 
 echo &quot;***************************************************************************************&quot;
 echo &quot;Build the software and actions on $box in $TARGET_DIR...&quot;
-
-
-if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
-	ssh $box make -C ${TARGET_DIR}/oc-snap clean software actions
-    
-else # CAPI2 MODE
-	ssh $box make -C ${TARGET_DIR} clean software actions
-	echo  &quot;CAPI2 mode : copy new snap_find_card to homedir&quot;;  
-	ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
-fi
+ssh $box make -C ${TARGET_DIR} clean software actions
+echo  &quot;CAPI2 mode : copy new snap_find_card to homedir&quot;;  
+ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
 #------------------------------------------------------------------------------------------------------------------------------
 # Execute the $RUN command on the $box
 
