@@ -264,9 +264,6 @@ for loop in `seq 1 $maxloop`;do
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
 	echo &quot;J:testing snap_maint for OC-${CRD}&quot;
         cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card.01 -A OC-${CRD}`||found=$?
-	#ssh fpga@${box} ./snap_find_card.01 -A OC-AD9V3
-	#echo &quot;J:RETURN CODE FROM snap_maint is : ${RC}&quot;
-	#exit 1
 else
 	echo &quot;J:testing snap_maint for AD9V3&quot;
     cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD}`||found=$?
@@ -382,13 +379,13 @@ fi
 
 echo &quot;***************************************************************************************&quot;
 echo &quot;Build the software and actions on $box in $TARGET_DIR...&quot;
-ssh $box make -C ${TARGET_DIR} clean software actions
 
 
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
-
+	ssh $box make -C ${TARGET_DIR}/oc-snap clean software actions
     
 else # CAPI2 MODE
+	ssh $box make -C ${TARGET_DIR} clean software actions
 	echo  &quot;CAPI2 mode : copy new snap_find_card to homedir&quot;;  
 	ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
 fi
