@@ -338,15 +338,24 @@ ssh fpga@${box} &quot;echo Git Branch: ${GIT_BRANCH}       &gt;&gt; jenkins.log&
 ssh $box tail -n8 jenkins.log
 
 #------------------------------------------------------------------------------------------------------------------------------
-# Copying Working directory TARGET_DIR into $box:/home/fpga
+# Copying Working directory TARGET_DIR into $box:/home/fpga for CAPI2, and creating a workinf dir in OC
 
-pwd=`pwd`
-echo &quot;pwd=$pwd&quot;
-TARGET_DIR=&quot;`basename $pwd`-${ReducedFileName}-${BUILD_NUMBER}&quot;
-RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
-echo &quot;create project dir, if not avail&quot;;      ssh $box mkdir -p ${TARGET_DIR}
-echo &quot;Copy workspace ${TARGET_DIR} to ${box}&quot;;rsync -az snap/ ${box}:/home/fpga/${TARGET_DIR}
-#echo &quot;remote workspace content6:&quot;;           ssh $box ls -al ${TARGET_DIR}
+	pwd=`pwd`
+	echo &quot;pwd=$pwd&quot;
+	TARGET_DIR=&quot;`basename $pwd`-${ReducedFileName}-${BUILD_NUMBER}&quot;
+	RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+	echo &quot;create project dir, if not avail&quot;;      ssh $box mkdir -p ${TARGET_DIR}
+    echo &quot;listing home dir on ${box}:&quot;;ssh fpga@${box} ls -al
+    exit 1
+
+if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
+	echo &quot;J: In OC we need to get the OC-SNAP from ibm&apos;s github&quot;
+    
+else # CAPI2 MODE
+
+	echo &quot;Copy workspace ${TARGET_DIR} to ${box}&quot;;rsync -az snap/ ${box}:/home/fpga/${TARGET_DIR}
+	#echo &quot;remote workspace content6:&quot;;           ssh $box ls -al ${TARGET_DIR}
+fi
 
 #------------------------------------------------------------------------------------------------------------------------------
 # Copying Image(s) into $box:/home/fpga/images
