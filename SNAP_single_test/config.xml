@@ -343,7 +343,7 @@ ssh $box tail -n8 jenkins.log
 	TARGET_DIR=&quot;`basename $pwd`-${ReducedFileName}-${BUILD_NUMBER}&quot;
     
     if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
-    		RUN=&quot;./actions/scripts/oc_snap_jenkins.sh&quot;
+    		RUN=&quot;sudo ./actions/scripts/oc_snap_jenkins.sh&quot;  #sudo used to get access to /dev/ocxl/IBM,oc-snap.... directory
     else
 		RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
     fi
