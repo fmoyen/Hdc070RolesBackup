@@ -264,7 +264,7 @@ for loop in `seq 1 $maxloop`;do
     #TEST AC for OC
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then 
 	echo &quot;J:testing snap_maint for OC-${CRD}&quot;
-        cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card.01 -A OC-${CRD}`||found=$?
+        cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A OC-${CRD}`||found=$?
 else
 	echo &quot;J:testing snap_maint for AD9V3&quot;
     cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD}`||found=$?
