@@ -5,11 +5,13 @@
 In case of problems: please contact alexandre.castellane@fr.ibm.com&#xd;
 Only AD9V3 card is available for test&#xd;
 Vivado version used : 2018.2 so far&#xd;
+local P9 snap_find_card is used with OC-$CRD prefix&#xd;
 &#xd;
 !!!!! DRAFT UNDER CONSTRUCTION !!!!&#xd;
-not master yet :&#xd;
-hls_memcopy_1024&#xd;
-hls_latency_eval_1024</description>
+=&gt;not master yet :&#xd;
+    - hls_memcopy_1024&#xd;
+    - hls_latency_eval_1024&#xd;
+=&gt; hdl_example.NORAM has an issue at config level (same as for CAPI2)</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
@@ -58,8 +60,7 @@ hls_latency_eval_1024</description>
         <hudson.model.StringParameterDefinition>
           <name>mopBoxes</name>
           <description>List of Montpellier systems available for testing :
-LC922 9006 :brahma (KO)
-AC922 8335-GTH: yob594</description>
+AC922 8335-GTH: yob594 and Lewen05 (no OC link for the moment)</description>
           <defaultValue>yob594</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
@@ -130,7 +131,6 @@ H 22-23/1 * * *</spec>
     <hudson.matrix.TextAxis>
       <name>ACT</name>
       <values>
-        <string>hdl_example.NORAM</string>
         <string>hdl_example.SDRAM</string>
         <string>hdl_example.BRAM</string>
         <string>hls_helloworld</string>
@@ -578,15 +578,24 @@ for loop in `seq 1 $maxloop`;do
     nusers=`ssh fpga@${box} who|grep -v root|grep -v fpga|wc -l`
 #   echo &quot;remote homespace content:&quot;; ssh $box ls -al /home/fpga
     find_card=snap_find_card.${GIT_COMMIT}.`date +%H%M%S`.`basename $BINFILES`
-    echo  &quot;J:copy $find_card to $box:/home/fpga&quot;;  # watch out &quot;single_test&quot; need to have this cp done before!
-    RC=0;scp ./software/tools/snap_find_card fpga@$box:/home/fpga/$find_card ; RC=$?
-    if
-      [ &quot;$RC&quot; -gt &quot;0&quot; ];then echo &quot;copy $find_card to $box result : RC=$RC, continue anyway&quot;;
-    fi
-    # Checking with temporary snap_find_card_our_reference if we have a $CRD available
-    found=0;cards=`ssh -ttq fpga@${box} /home/fpga/$find_card -A ${CRD}`||found=$?
-    SSH_RC=0;ssh -ttq fpga@${box} rm /home/fpga/$find_card || SSH_RC=$?
-    echo &quot;J:`date` removed $find_card ./from $box RC=$SSH_RC&quot;
+    
+# Potential issue to be solved :
+#  for some reason Joerg was coping the snap_find_card, for the moment, we rely on the local P9 server one (I did ln -s to the local oc-snap dir) 
+#  if it has been updated, then we miss the update though !!!
+#
+# older CAPI2 manner :
+#    echo  &quot;J:copy $find_card to $box:/home/fpga&quot;;  # watch out &quot;single_test&quot; need to have this cp done before!
+#    RC=0;scp ./software/tools/snap_find_card fpga@$box:/home/fpga/$find_card ; RC=$?
+#    if
+#      [ &quot;$RC&quot; -gt &quot;0&quot; ];then echo &quot;copy $find_card to $box result : RC=$RC, continue anyway&quot;;
+#    fi
+# end of older manner
+
+    # Checking with local linked (to ~fpga/oc-snap/software/tools/) snap_find_card if we have a $CRD available
+     found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A OC-${CRD}`||found=$?
+    #found=0;cards=`ssh -ttq fpga@${box} /home/fpga/$find_card -A ${CRD}`||found=$?
+    #SSH_RC=0;ssh -ttq fpga@${box} rm /home/fpga/$find_card || SSH_RC=$?
+    #echo &quot;J:`date` removed $find_card ./from $box RC=$SSH_RC&quot;
     hours=`date +%H`
 	echo &quot;J:`date` loop=$loop box=$box nusers=$nusers card=$CRD snap_find_card found=$found&quot;
     case $found:$nusers in
@@ -634,8 +643,10 @@ for loop in `seq 1 $maxloop`;do
     esac
   done # for box
 done #for loop
-if [ &quot;$loop&quot; == &quot;$maxloop&quot; ];then 
-  SAVE=&quot;/data/Images/card_not_avail&quot;
+if [ &quot;$loop&quot; == &quot;$maxloop&quot; ];then
+  DIR=${CRD}_oc_card_not_avail
+  mkdir -p /data/Images/${DIR}
+  SAVE=&quot;/data/Images/${CRD}_card_not_avail&quot;
   echo &quot;no card avail, copy image to $SAVE&quot;
   cp -rp $BINFILES $SAVE            
   exit 100
@@ -656,7 +667,7 @@ ssh $box ls -al
 
 echo &quot;J:Copy workspace ${TARGET_DIR} to ${box}&quot;
 #RC=0;rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
-RC=0; ssh fpga@${box} &quot;git clone http://github.com/open-power/snap.git ${TARGET_DIR}&quot; || RC=$?
+RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot; || RC=$?
 
 #Fab #RC=0
 #Fab #ssh $box ls -a |grep -Fx snap
@@ -670,7 +681,7 @@ RC=0; ssh fpga@${box} &quot;git clone http://github.com/open-power/snap.git ${TA
 #Fab #fi
 
 if [ &quot;$RC&quot; -gt &quot;0&quot; ];then 
-	SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;git clone http://github.com/open-power/snap.git ${TARGET_DIR} failed, copy image to $SAVE&quot;;
+	SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR} failed, copy image to $SAVE&quot;;
 	cp -rp $BINFILES $SAVE
 	echo &quot;=&gt;exit with RC=100&quot;
 	exit 100
