@@ -665,8 +665,11 @@ trap finish EXIT  # register finish/unlock function, after lock is set
 echo &quot;Running on $box :ls -al&quot;
 ssh $box ls -al
 
-echo &quot;J:Copy workspace ${TARGET_DIR} to ${box}&quot;
+# CAPI2 for memory :
+#echo &quot;J:Copy workspace ${TARGET_DIR} to ${box}&quot;
 #RC=0;rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
+
+echo &quot;J:Preparing oc-snap workspace by cloning git@github.ibm.com:OC-Enablement/oc-snap.git into ${TARGET_DIR} at ${box}&quot;
 RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot; || RC=$?
 
 #Fab #RC=0
@@ -681,7 +684,7 @@ RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.g
 #Fab #fi
 
 if [ &quot;$RC&quot; -gt &quot;0&quot; ];then 
-	SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR} failed, copy image to $SAVE&quot;;
+	SAVE=&quot;/data/Images/rsync_error&quot;;echo &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR} failed at ${box}, copy image to $SAVE&quot;;
 	cp -rp $BINFILES $SAVE
 	echo &quot;=&gt;exit with RC=100&quot;
 	exit 100

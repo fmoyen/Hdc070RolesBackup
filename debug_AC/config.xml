@@ -41,16 +41,21 @@
 
 cd 
 ls -al
+
+cp /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/jenkins_mods/ACT/hls_helloworld/CRD_CL/AD9V3_nCL/snap/hardware/build/Images/* /data/Images/card_not_avail/
 #rm core.*
-cd .ssh
-ls -al
-more config
+#cd .ssh
+#ls -al
+#more config
 #more config.orig
-more known_hosts
+#more known_hosts
 #mv config config.orig2
 #cp /afs/bb/proj/fpga/framework/config .
 #more config
-ssh-keyscan -H 10.3.76.24 &gt;&gt; ~/.ssh/known_hosts
+
+## update known_hosts:
+#ssh-keyscan -H 10.3.76.24 &gt;&gt; ~/.ssh/known_hosts
+
 #ping -c2 10.7.12.50
 #ping -c2 brahma
 #ping -c2 lewen5

@@ -29,7 +29,7 @@ It gets the ID after programmation (although prog may have failed?) and checks t
           <editableType>NoFilter</editableType>
           <choiceListProvider class="jp.ikedam.jenkins.plugins.extensible_choice_parameter.FilenameChoiceListProvider">
             <baseDirPath>/data/Images</baseDirPath>
-            <includePattern>*/fw*bin</includePattern>
+            <includePattern>*/fw*bin, */oc*bin</includePattern>
             <scanType>File</scanType>
             <excludePattern></excludePattern>
             <reverseOrder>false</reverseOrder>
