@@ -5,7 +5,8 @@
 for Questions: contact J.Kayser, A.Castellane or F.Moyen&#xd;
 OC is using OC-SNAP &quot;jenkins_mode&quot; branch for the moment&#xd;
 This test doesn&apos; check that the card ID is the one we wanted to programm&#xd;
-It gets the ID after programmation (although prog may have failed?) and checks the corresponding test only</description>
+It gets the ID after programmation (although prog may have failed?) and checks the corresponding test only&#xd;
+removed fw for oc test */fw*bin, */oc*bin</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <jenkins.model.BuildDiscarderProperty>
@@ -29,7 +30,7 @@ It gets the ID after programmation (although prog may have failed?) and checks t
           <editableType>NoFilter</editableType>
           <choiceListProvider class="jp.ikedam.jenkins.plugins.extensible_choice_parameter.FilenameChoiceListProvider">
             <baseDirPath>/data/Images</baseDirPath>
-            <includePattern>*/fw*bin, */oc*bin</includePattern>
+            <includePattern>*/oc*bin</includePattern>
             <scanType>File</scanType>
             <excludePattern></excludePattern>
             <reverseOrder>false</reverseOrder>
@@ -427,9 +428,11 @@ if [ &quot;$RC&quot; == &quot;0&quot; ]; then :
   echo &quot;`date` FABRICE- NOT Removing $BoeIMGDir/$IMGSecondaryName (for debug)&quot;
 #  echo &quot;`date` Remove $BoeIMGDir/$IMGSecondaryName&quot;;       rm $BoeIMGDir/$IMGSecondaryName
 
+# WARNING jenkins_test.sh renames already the files when it succeeds !!
+
   echo &quot;`date` Renaming good.* primary/secondary files on ${box}&quot;
-  ssh fpga@${box} &quot;mv \`ls $ExecutorIMGRootDir/$CRD/${IMGPrimaryName}*\` $ExecutorIMGRootDir/$CRD/good.$IMGPrimaryName&quot;
-  ssh fpga@${box} &quot;mv \`ls $ExecutorIMGRootDir/$CRD/${IMGSecondaryName}*\` $ExecutorIMGRootDir/$CRD/good.$IMGSecondaryName&quot;
+#  ssh fpga@${box} &quot;mv \`ls $ExecutorIMGRootDir/$CRD/${IMGPrimaryName}*\` $ExecutorIMGRootDir/$CRD/good.$IMGPrimaryName&quot;
+#  ssh fpga@${box} &quot;mv \`ls $ExecutorIMGRootDir/$CRD/${IMGSecondaryName}*\` $ExecutorIMGRootDir/$CRD/good.$IMGSecondaryName&quot;
 
   echo
 else 
