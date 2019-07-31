@@ -477,7 +477,7 @@ fi
 # when using a SPI8 flash we have 2 binary files to deal with
 
   #BINFILES contains binary name (In SPI : &quot;primary and secondary&quot; names)
-  BINFILES=`ls $SNAP_ROOT/hardware/build/Images/fw_[0-9]*.bin|grep -v FACTORY|head -n2`
+  BINFILES=`ls $SNAP_ROOT/hardware/build/Images/oc_[0-9]*.bin|grep -v FACTORY|head -n2`
   
   if [ &quot;$BINFILES&quot; == &quot;&quot; ]; then echo &quot;cannot find binfile $BINFILES&quot;;exit 1
   fi
@@ -494,7 +494,7 @@ done
 # In FACTORY MODE : We save hdl_example and hls_helloworld bin for cards files for future .mcs generation
 case ${ACT}:$FACTORY in
      hdl_example.NORAM:true ) 
-			FACTBINFILES=`ls -t $SNAP_ROOT/hardware/build/Images/fw_*[0-9]_FACTORY*.bin`  # take FACTORY bin files
+			FACTBINFILES=`ls -t $SNAP_ROOT/hardware/build/Images/oc_*[0-9]_FACTORY*.bin`  # take FACTORY bin files
           # Copy hdl_ex Factory files if any
             if [ &quot;$FACTBINFILES&quot; == &quot;&quot; ] ; then echo &quot;Cannot find Factory binfile $FACTBINFILES although FACTORY REQUESTED !!&quot;;exit 1
             fi
@@ -513,7 +513,7 @@ mkdir -p /data/Images/${DIR}
 
 # leave uncommented the following line if there is not hardware available at all for the selected card
 case $CRD:${TEST_ON_HW} in
-  AD9V3:* )    SAVE=&quot;/data/Images/AD9V3_oc_missing&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
+  #AD9V3:* )    SAVE=&quot;/data/Images/AD9V3_oc_missing&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
   INNOVA2:* )  SAVE=&quot;/data/Images/INNOVA2_oc_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
   *:false )    SAVE=&quot;/data/Images/no_test_required&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
 esac
