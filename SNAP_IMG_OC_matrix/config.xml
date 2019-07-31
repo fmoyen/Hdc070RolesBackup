@@ -352,7 +352,6 @@ echo &quot;current path is :&quot;
 pwd
 #rm -rf ocse
 case $CRD in 
-  #*) 		branch=&apos;issue26&apos;;;
   *) 		branch=&apos;master&apos;;;
 esac
 echo &quot;Get OpenCAPI Simulation Environment branch=$branch for card=$CRD...&quot;
@@ -701,7 +700,7 @@ echo &quot;&quot;
 # ssh fpga@${box} lsb_release -a
 
 echo &quot;J:Preparing command ...&quot;
-RUN=&quot;./actions/scripts/snap_jenkins.sh&quot;
+RUN=&quot;sudo ./actions/scripts/oc_snap_jenkins.sh&quot;  #sudo used to get access to /dev/ocxl/IBM,oc-snap.... directory
 if [ ! -f $RUN ];then 
   echo &quot;J:`date` Shell Script $RUN not found,Exit UNSTABLE&quot;;
   exit 100

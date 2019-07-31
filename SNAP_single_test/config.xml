@@ -3,7 +3,9 @@
   <actions/>
   <description>transfer an already built image to the right card and test it&#xd;
 for Questions: contact J.Kayser, A.Castellane or F.Moyen&#xd;
-OC is using OC-SNAP &quot;jenkins_mode&quot; branch for the moment</description>
+OC is using OC-SNAP &quot;jenkins_mode&quot; branch for the moment&#xd;
+This test doesn&apos; check that the card ID is the one we wanted to programm&#xd;
+It gets the ID after programmation (although prog may have failed?) and checks the corresponding test only</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <jenkins.model.BuildDiscarderProperty>
