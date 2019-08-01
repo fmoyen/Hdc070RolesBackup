@@ -670,7 +670,7 @@ ssh $box ls -al
 #RC=0;rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
 
 echo &quot;J:Preparing oc-snap workspace by cloning git@github.ibm.com:OC-Enablement/oc-snap.git into ${TARGET_DIR} at ${box}&quot;
-RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot; || RC=$?
+RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}; git checkout ${GIT_BRANCH}&quot; || RC=$?
 
 #Fab #RC=0
 #Fab #ssh $box ls -a |grep -Fx snap

@@ -3,7 +3,9 @@
   <actions/>
   <description>transfer an already built image to the right card and test it&#xd;
 for Questions: contact J.Kayser, A.Castellane or F.Moyen&#xd;
-OC is using OC-SNAP &quot;jenkins_mode&quot; branch for the moment&#xd;
+Make sure P9 host the proper branch for your test !&#xd;
+&#xd;
+We are using OC-SNAP &quot;jenkins_mode&quot; branch for the moment (from local oc-snap prepared dir)&#xd;
 This test doesn&apos; check that the card ID is the one we wanted to programm&#xd;
 It gets the ID after programmation (although prog may have failed?) and checks the corresponding test only&#xd;
 removed fw for oc test */fw*bin, */oc*bin</description>
