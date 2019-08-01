@@ -745,11 +745,12 @@ echo &quot;&quot;
 echo &quot;J:Make finished on $box in $TARGET_DIR ...&quot;
 echo &quot;***************************************************************************************&quot;
 echo &quot;&quot;
-echo &quot;J:`date` Executing this SNAP JENKINS TEST on $box:&quot;
+echo &quot;J:`date` Executing this SNAP JENKINS TEST on $box from ${TARGET_DIR} directory:&quot;
 echo &quot;J:=&gt;$RUN&quot;
 RC=0;ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
 	export TERM=xterm
 	cd ${TARGET_DIR}
+    pwd
 	set -f
     ${RUN}
 EOF
@@ -760,8 +761,10 @@ ssh fpga@${box} &quot;echo Exit: $JOB_NAME RC = $RC at:\       &gt;&gt; jenkins.
 ssh fpga@${box} &quot;date                                     &gt;&gt; jenkins.log&quot;
 ssh fpga@${box} &quot;echo ----------- EXIT -------------------&gt;&gt; jenkins.log&quot;
 
-echo &quot;J:`date` Clean up ${TARGET_DIR} on ${box}&quot;
-ssh -T fpga@${box} rm -rf ${TARGET_DIR}
+#DEBUG !!
+#echo &quot;J:`date` Clean up ${TARGET_DIR} on ${box}&quot;
+echo &quot;J:`date` DEBUG : DO NOT Clean up ${TARGET_DIR} on ${box}&quot;
+#ssh -T fpga@${box} rm -rf ${TARGET_DIR}
   
 if [ 0 -ne $RC ]; then
   echo &quot;J:`date` Test failed RC = $RC, exit UNSTABLE&quot;

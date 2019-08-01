@@ -396,11 +396,14 @@ ssh $box cp ${TARGET_DIR}/software/tools/snap_find_card .
 # Execute the $RUN command on the $box
 
 echo &quot;***************************************************************************************&quot;
-echo &quot;`date` Execute Test: $RUN on $box&quot;
+echo &quot;&quot;
+echo &quot;J:`date` Executing this SNAP JENKINS TEST on $box from ${TARGET_DIR} directory:&quot;
+echo &quot;J:=&gt;$RUN&quot;
 RC=0
 ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
 	export TERM=xterm
 	cd ${TARGET_DIR}
+    pwd
 	set -f
     ulimit -c unlimited               # limit core dumps
     ${RUN}
