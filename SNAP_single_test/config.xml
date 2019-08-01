@@ -394,6 +394,9 @@ else
 	if [ -z ${BoeIMGFile} ]; then RUN+=&quot; -A ALL&quot;;else RUN+=&quot; -F ${ExecutorIMGRootDir}/$CRD/$IMGFileName -A ${CRD} -C $cardid&quot;;fi
 fi
 
+else
+	RUN+=&quot; -A ALL&quot;
+	RUN+=&quot; -D ${TARGET_DIR}&quot;
 fi # end of NoProg test
 
 
