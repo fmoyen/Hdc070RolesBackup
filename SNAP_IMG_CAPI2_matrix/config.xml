@@ -10,7 +10,8 @@ WARNING !!! &#xd;
 ==&gt; Brahma being down, no N250SP tests available, only AD9V3 can be P9 tested                 &#xd;
 &#xd;
 RCXVUP_nCL removed from matrix to reduce load&#xd;
-hdl_example.NORAM temporarily removed</description>
+hdl_example.NORAM temporarily removed (generates junk on jenkins log)&#xd;
+hls_parallel_memcpy removed (fails)</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
@@ -178,7 +179,6 @@ H 22-23/1 * * *</spec>
         <string>hls_decimal_mult</string>
         <string>hls_scatter_gather</string>
         <string>hls_latency_eval</string>
-        <string>hls_parallel_memcpy</string>
         <string>hls_vector_generator</string>
         <string>test</string>
       </values>
