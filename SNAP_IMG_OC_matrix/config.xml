@@ -670,7 +670,7 @@ ssh $box ls -al
 #RC=0;rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
 
 echo &quot;J:Preparing oc-snap workspace by cloning git@github.ibm.com:OC-Enablement/oc-snap.git into ${TARGET_DIR} at ${box}&quot;
-RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}; git checkout ${GIT_BRANCH}&quot; || RC=$?
+RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot; || RC=$?
 
 #Fab #RC=0
 #Fab #ssh $box ls -a |grep -Fx snap
@@ -689,6 +689,9 @@ if [ &quot;$RC&quot; -gt &quot;0&quot; ];then
 	echo &quot;=&gt;exit with RC=100&quot;
 	exit 100
 fi
+
+ssh fpga@${box} &quot;cd ${TARGET_DIR};git checkout ${GIT_BRANCH}&quot;
+
 
 echo &quot;J:COPY Image(s) $BINFILES to $IMAGE on $box&quot;
 ssh $box mkdir -p /home/fpga/images/${CRD}/${ACT}    # create subdirectory, if not avail yet

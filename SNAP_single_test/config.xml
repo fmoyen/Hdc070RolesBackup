@@ -66,6 +66,11 @@ bug : watch out N250SP containing N250S string, remove N250S card for N250SP tes
           <description>Testing OpenCAPI codes</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>NoProg</name>
+          <description>Do not program</description>
+          <defaultValue>false</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
@@ -359,7 +364,9 @@ ssh $box tail -n8 jenkins.log
 if [ &quot;$OpenCAPI&quot; == &quot;true&quot; ]; then     #TEST AC for OC
 	echo &quot;J: In OC we need to get the OC-SNAP from ibm&apos;s github&quot;
     echo &quot;J: In OC we rely on local snap_find_card for OC, (using acastellane .ssh config to get code)&quot;
-    ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot;
+    #ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}&quot;
+    RC=0; ssh fpga@${box} &quot;git clone git@github.ibm.com:OC-Enablement/oc-snap.git ${TARGET_DIR}; cd ${TARGET_DIR};git checkout jenkins_mods&quot; || RC=$?
+echo &quot;RC=$RC after checkout&quot;    
     ssh fpga@${box} &quot;cd ${TARGET_DIR};git checkout jenkins_mods&quot;
     echo &quot;J: oc-snap directory prepared&quot;
 else # CAPI2 MODE
@@ -373,6 +380,8 @@ fi
 
 echo &quot;mkdir ${ExecutorIMGRootDir}/$CRD, if not avail&quot;;            ssh $box mkdir -p ${ExecutorIMGRootDir}/$CRD
 
+if [ &quot;$NoProg&quot; == &quot;false&quot; ]; then
+
 if [ &quot;$SPI8&quot; -eq &quot;1&quot; ];then
 	echo &quot;J: COPY Image $IMGPrimaryName   to $box:${ExecutorIMGRootDir}/$CRD&quot;;            rsync -az   $BoeIMGDir/$IMGPrimaryName ${box}:${ExecutorIMGRootDir}/$CRD
 	echo &quot;J: COPY Image $IMGSecondaryName to $box:${ExecutorIMGRootDir}/$CRD&quot;;            rsync -az $BoeIMGDir/$IMGSecondaryName ${box}:${ExecutorIMGRootDir}/$CRD
@@ -384,6 +393,8 @@ else
 	RUN+=&quot; -D ${TARGET_DIR}&quot;
 	if [ -z ${BoeIMGFile} ]; then RUN+=&quot; -A ALL&quot;;else RUN+=&quot; -F ${ExecutorIMGRootDir}/$CRD/$IMGFileName -A ${CRD} -C $cardid&quot;;fi
 fi
+
+fi # end of NoProg test
 
 
 #------------------------------------------------------------------------------------------------------------------------------
