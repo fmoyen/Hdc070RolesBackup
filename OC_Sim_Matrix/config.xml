@@ -404,15 +404,16 @@ cd ${SNAP_ROOT}/hardware/sim
  #./run_sim -list testlist.sh -noaet
 
 #case &quot;$ACT&quot; in
-#  hdl_example.NORAM )    test=../../actions/hdl_example/tests/10140000_test.sh;;
-#  hdl_example.BRAM )     test=../../actions/hdl_example/tests/10140000_test.sh;;
-#  hdl_example.SDRAM    ) test=../../actions/hdl_example/tests/10140000_ddr_test.sh;;
+  hdl_example.NORAM )    test=../../actions/hdl_example/tests/10140000_test.sh;;
+  hdl_example.BRAM )     test=../../actions/hdl_example/tests/10140000_test.sh;;
+  hdl_example.SDRAM    ) test=../../actions/hdl_example/tests/10140000_ddr_test.sh;;
 #  hls_helloworld )       test=../../actions/$ACT/tests/test_0x10141008.sh;;
 #  hls_memcopy )          test=../../actions/$ACT/tests/test_0x10141000.sh;;
 #  hls_memcopy_1024 )     test=../../actions/$ACT/tests/test_0x10141000.sh;;
 #  hls_latency_eval_1024 )test=../../actions/$ACT/tests/test_0x10141009.sh;;
-#esac
-test=../../actions/$ACT/tests/hw_test.sh   # we now use the smae name for all tests
+  *) test=../../actions/$ACT/tests/hw_test.sh   # we now use the same name for all tests but hdl-ex
+esac
+
 RC=0;./run_sim -list $test -noaet||RC=$?
       if [ $RC == &quot;0&quot; ]; then echo &quot;test $test ok&quot;; else echo &quot;test $test failed&quot;;exit 1;fi
 
