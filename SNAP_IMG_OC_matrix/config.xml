@@ -28,8 +28,10 @@ local P9 snap_find_card is used with OC-$CRD prefix&#xd;
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>TEST_ON_HW</name>
-          <description>enable/disable testing on HW</description>
-          <defaultValue>true</defaultValue>
+          <description>Disabled by default as oc-flash + oc-reset does&apos;t work yet =&gt; need to reboot to get the code !
+
+Enable/disable testing on HW</description>
+          <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>HDL</name>
