@@ -7,7 +7,7 @@ WARNING !!! &#xd;
 =&gt;&gt; FX609, S241, RCXVUP, U200 cards are not available for test =&gt; only binary generation are performed (no hw test)  &#xd;
 =&gt;&gt; TIMING increased to 300ps for CAPI2&#xd;
 ==&gt; default is 2018.2 (as 2018.3 has a bug affecting CAPI-BSP)   we force 2018.3 for U200 and eventually 2017.4 for RCXVUP !!   &#xd;
-==&gt; Brahma being down, no N250SP tests available, only AD9V3 can be P9 tested                 &#xd;
+==&gt; Brahma being down, no N250SP tests available, Lewen05 is not availbale =&gt; AD9V3 can not be P9 tested either              &#xd;
 &#xd;
 RCXVUP_nCL removed from matrix to reduce load&#xd;
 hdl_example.NORAM temporarily removed (generates junk on jenkins log)&#xd;
@@ -28,8 +28,9 @@ hls_parallel_memcpy removed (fails)</description>
         </hudson.model.StringParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>TEST_ON_HW</name>
-          <description>enable/disable testing on HW</description>
-          <defaultValue>true</defaultValue>
+          <description>enable/disable testing on HW
+yob594 is dismantled, lewen05 is not in good shape !</description>
+          <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
           <name>HDL</name>
@@ -86,9 +87,9 @@ hls_parallel_memcpy removed (fails)</description>
           <name>mopBoxes</name>
           <description>List of Montpellier systems available for testing
 9006 LC922 Brahma hosts a N250SP but is KO
-lewen05 AC922 hosts a AD9V3 in CAPI2 mode only
-Yob594 is used also for OpenCAPI (AD9V3)</description>
-          <defaultValue>lewen05 yob594</defaultValue>
+lewen05 AC922 is KO hosts a AD9V3 in CAPI2 mode only
+Yob594 is returned</description>
+          <defaultValue></defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
