@@ -87,7 +87,7 @@ yob594 is dismantled, lewen05 is not in good shape !</description>
           <name>mopBoxes</name>
           <description>List of Montpellier systems available for testing
 9006 LC922 Brahma hosts a N250SP but is KO
-lewen05 AC922 is KO hosts a AD9V3 in CAPI2 mode only
+lewen05 AC922hosts a AD9V3 in CAPI2 mode only
 Yob594 is returned</description>
           <defaultValue></defaultValue>
           <trim>false</trim>

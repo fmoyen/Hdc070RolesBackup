@@ -262,8 +262,8 @@ esac
 case &quot;$CRD:$ACT:$SIM:$CAPI2&quot; in
   *:hls_scatter_gather:0 )      C=&quot;scc1&quot;;ASKIP=1;; # no scatter_gather for CAPI1 cards // test done by jenkins filter , could be removed, as well as the CAPI2 variable
   *:*DENALI*:xsim:* )           C=&quot;NVMD&quot;;ASKIP=1;; # DENALI doesnt work with xsim
-# *:*NVME*:xsim:* )             C=&quot;NVMX&quot;;ASKIP=1;;
-# *:*nvme*:xsim:* )             C=&quot;nvmX&quot;;ASKIP=1;;
+  *:*NVME*:xsim:* )             C=&quot;NVMX&quot;;ASKIP=1;;
+  *:*nvme*:xsim:* )             C=&quot;nvmX&quot;;ASKIP=1;;
 # S121B:hdl_example.SDRAM:*:* ) C=&quot;S1SD&quot;;ASKIP=0;; # $CRD can be xsim, irun, default
 # S121B:*:*:* )                 C=&quot;S1&quot;  ;ASKIP=1;;  
 # N250S:*NVME*:*:* )            C=&quot;SNVM&quot;;ASKIP=0;;
