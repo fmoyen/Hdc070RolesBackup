@@ -511,6 +511,7 @@ echo &quot;test_on_hw=${TEST_ON_HW} for card=$CRD&quot;
 case $CRD:${TEST_ON_HW} in
 
 # AD8K5:* )  SAVE=&quot;/data/Images/AD8K5_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
+  ADKU3:* )  SAVE=&quot;/data/Images/ADKU3_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   S121B:* )  SAVE=&quot;/data/Images/S121B_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   *:false )  SAVE=&quot;/data/Images/no_test_required&quot;;echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
 esac
