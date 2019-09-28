@@ -70,7 +70,7 @@ export SNAP_ROOT=$USERHOME/snap
 #TESTBOXES=( tul3 tul2 )               # init array of systems avail for test, w/o 8K5&amp;N250SP
 # Marennes (P8) hosts a 8k5 card in IBM Montpellier (requires a vpn access)
 # Brahma (Boston P9 9006-22p) hosts a N250SP and a AD9V3 card in IBM Montpellier (requires a vpn access)
-TESTBOXES=( antipode ) # init array of systems  DEBUG AC
+TESTBOXES=( marennes ) # init array of systems  DEBUG AC
 echo &quot;testboxes1=${TESTBOXES[@]}&quot;
 
 echo &quot;****************************************************************************************&quot;
