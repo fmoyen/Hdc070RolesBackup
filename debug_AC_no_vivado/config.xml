@@ -90,9 +90,13 @@ LSF+=&quot; -I -n 8&quot;
 
 #CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
 #CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
-CRD=AD9V3
+
+# for testing purpose we select the card by hand 
+#CRD=AD9V3
+CRD=AD8K5
 CL=nCL
-ACT=hls_sponge_noSDRAM
+#ACT=hls_sponge_noSDRAM
+ACT=hls_search
 
 echo &quot;DEBUG AC creating snap&quot;
 mkdir -p snap
@@ -302,8 +306,8 @@ for loop in `seq 1 $maxloop`;do
 #DEBUG AC    RC=0;scp ./software/tools/snap_find_card 
 #DEBUG AC    fpga@$box:/home/fpga/$find_card ; RC=$?
 #DEBUG AC    if [ &quot;$RC&quot; -gt &quot;0&quot; ];then echo &quot;snap_find_card on $box RC=$RC, continue anyway&quot;;fi
-    echo  &quot;#DEBUG AC : running : ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD} ...&quot;
-    found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card2 -A ${CRD}`||found=$?
+    echo  &quot;#DEBUG AC : running : ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD} ...&quot;
+    found=0;cards=`ssh -ttq fpga@${box} /home/fpga/snap_find_card -A ${CRD}`||found=$?
     SSH_RC=0;#DEBUG AC ssh -ttq fpga@${box} rm /home/fpga/$find_card || SSH_RC=$?
 #   echo &quot;`date` removed $find_card ./from $box RC=$SSH_RC&quot;
     hours=`date +%H`
@@ -379,7 +383,7 @@ echo &quot;running on $box :ls -al&quot;
 ssh $box ls -al
 #DEBUG AC rsync -az --delete . fpga@${box}:${TARGET_DIR} ; RC=$?
 RC=0
-ssh $box ls -a |grep -Fx snap
+#ssh $box ls -a |grep -Fx snap
 echo &quot;fin de commande&quot;
 if [ ! $(ssh $box &quot;ls -a |grep -Fx snap&quot;) == &quot;snap&quot; ];then
 	echo &quot;remote snap dir not existing, cloning it&quot;
@@ -416,8 +420,9 @@ echo &quot;IMAGE[0]=${IMAGE[0]}&quot;
 echo &quot;IMAGE[1]=${IMAGE[1]}&quot;
 echo &quot; DEBUG AC manual file settings&quot;
 
-IMAGE[0]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_primary.bin
-IMAGE[1]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_secondary.bin
+IMAGE[0]=/home/fpga/images//AD8K5/hls_search/fw_2019_0911_0538_hls_search_SDRAM_AD8K5_5.bin
+#IMAGE[0]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_primary.bin
+#IMAGE[1]=/home/fpga/images/AD9V3/hls_sponge/fw_2019_0402_1211_hls_sponge_noSDRAM_AD9V3_-229_secondary.bin
 #IMAGE[0]=/home/fpga/images/AD9V3/hdl_example.NORAM/fw_2018_1203_1235_hdl_example_noSDRAM_AD9V3_0_primary.bin
 #IMAGE[1]=/home/fpga/images/AD9V3/hdl_example.NORAM/fw_2018_1203_1235_hdl_example_noSDRAM_AD9V3_0_secondary.bin
 echo &quot;IMAGE[0]=${IMAGE[0]}&quot;
