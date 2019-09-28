@@ -39,16 +39,19 @@
 # mkdir AD9V3_missing
 # chmod 750 AD9V3_missing
 
+pwd
+ls -al
 cd 
 ls -al
 
-cp /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/jenkins_mods/ACT/hls_helloworld/CRD_CL/AD9V3_nCL/snap/hardware/build/Images/* /data/Images/card_not_avail/
+#cp /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/jenkins_mods/ACT/hls_helloworld/CRD_CL/AD9V3_nCL/snap/hardware/build/Images/* /data/Images/card_not_avail/
+#
 #rm core.*
-#cd .ssh
-#ls -al
-#more config
+cd .ssh
+ls -al
+more config
 #more config.orig
-#more known_hosts
+more known_hosts
 #mv config config.orig2
 #cp /afs/bb/proj/fpga/framework/config .
 #more config
@@ -59,7 +62,7 @@ cp /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/jenkins_mods/ACT/hls_hel
 #ping -c2 10.7.12.50
 #ping -c2 brahma
 #ping -c2 lewen5
-#more id_rsa.pub
+more id_rsa.pub
 
 #    RC=0;ssh lewen05 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
 #    if [ $RC != &quot;0&quot; ]; then :

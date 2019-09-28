@@ -70,7 +70,7 @@ export SNAP_ROOT=$USERHOME/snap
 #TESTBOXES=( tul3 tul2 )               # init array of systems avail for test, w/o 8K5&amp;N250SP
 # Marennes (P8) hosts a 8k5 card in IBM Montpellier (requires a vpn access)
 # Brahma (Boston P9 9006-22p) hosts a N250SP and a AD9V3 card in IBM Montpellier (requires a vpn access)
-TESTBOXES=( marennes ) # init array of systems  DEBUG AC
+TESTBOXES=( 10.3.76.24 ) # init array of systems  DEBUG AC
 echo &quot;testboxes1=${TESTBOXES[@]}&quot;
 
 echo &quot;****************************************************************************************&quot;
@@ -92,8 +92,8 @@ LSF+=&quot; -I -n 8&quot;
 #CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
 
 # for testing purpose we select the card by hand 
-#CRD=AD9V3
-CRD=AD8K5
+CRD=AD9V3
+#CRD=AD8K5
 CL=nCL
 #ACT=hls_sponge_noSDRAM
 ACT=hls_search
