@@ -454,6 +454,12 @@ echo &quot;Build the software and actions on $box in $TARGET_DIR ...&quot;
 RC=0;ssh $box make -C ${TARGET_DIR} clean software actions || exit 100
 
 echo &quot;***************************************************************************************&quot;
+echo &quot;`date` Testing remote reboot of $box&quot;
+RC=0;ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
+	sudo shutdown -r +1 &quot;Fpga account will restart $box in 1 minute. Please save your work.&quot;
+EOF
+sleep 400
+echo &quot;***************************************************************************************&quot;
 echo &quot;`date` Execute Test: $RUN on $box&quot;
 RC=0;ssh -T fpga@${box} &lt;&lt; EOF || RC=$?
 	export TERM=xterm
