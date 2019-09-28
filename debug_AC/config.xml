@@ -40,7 +40,7 @@
 # chmod 750 AD9V3_missing
 
 pwd
-ls -al
+#ls -al
 cd 
 ls -al
 
@@ -48,27 +48,33 @@ ls -al
 #
 #rm core.*
 cd .ssh
-ls -al
-more config
-#more config.orig
+#ls -al
+#more config
 more known_hosts
+#more authorized_keys
+
+#UPDATE CONFIG file containing IP &lt;&gt; name relationship
 #mv config config.orig2
-#cp /afs/bb/proj/fpga/framework/config .
+#mv config config.before_orpington
+#cp /afs/bb/proj/fpga/framework/config_orpington ./config
+#mv config_orpington ./config
 #more config
 
 ## update known_hosts:
 #ssh-keyscan -H 10.3.76.24 &gt;&gt; ~/.ssh/known_hosts
+#more known_hosts
 
 #ping -c2 10.7.12.50
 #ping -c2 brahma
 #ping -c2 lewen5
-more id_rsa.pub
+#more id_rsa.pub
+ping 10.3.76.24 -c1
 
-#    RC=0;ssh lewen05 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
-#    if [ $RC != &quot;0&quot; ]; then :
-#      echo &quot;lewen05 not reachable, retry VPN connection&quot;
-#      echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
-#	fi
+    RC=0;ssh 10.3.76.24 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
+    if [ $RC != &quot;0&quot; ]; then :
+      echo &quot;Oprpington not reachable, retry VPN connection&quot;
+      echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+	fi
     
 #
 #ls -al
