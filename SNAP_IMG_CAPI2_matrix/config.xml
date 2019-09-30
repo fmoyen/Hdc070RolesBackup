@@ -432,6 +432,7 @@ LSF+=&quot; -M 6&quot;                      # 12GB memory
 LSF+=&quot; -C 2000&quot;                   # 2MB core file
 LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
 LSF+=&quot; -I -n 8&quot;
+echo &quot;LSF variable set to : $LSF&quot;
 
 # Fabrice: CRD and CL now passed from first script thanks to export_props.properties file
 # CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
