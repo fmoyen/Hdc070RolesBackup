@@ -105,14 +105,14 @@ echo &quot;#####################################&quot;
 #######################################
 # SSH &amp; AFS investigation
 
-#echo
-#echo &quot;## ~/.ssh/config&quot;
-#ls -lad ~/.ssh/config
-#cat ~/.ssh/config
-#echo
-#echo &quot;ssh hostname onto Brahma testing:&quot;
-#export SSHPASS=XXXX
-#sshpass -e ssh -o afstokenpassing=no fmoyen@10.3.76.22 hostname
+# echo
+# echo &quot;## ~/.ssh/config&quot;
+# ls -lad ~/.ssh/config
+# cat ~/.ssh/config
+echo
+echo &quot;ssh hostname onto orpington testing:&quot;
+export SSHPASS=XXXXXXXX
+sshpass -e ssh -o afstokenpassing=no fmoyen@10.3.76.24 hostname
 
 #echo
 #echo &quot;## SSH TEST&quot;
@@ -154,21 +154,21 @@ echo &quot;#####################################&quot;
 
 #################################
 # du -sh 
-echo
-cd /var/lib/jenkins
-pwd
-echo; echo &quot;du -sh &quot;
-du -sh .
-echo
-du -sh *
-echo; echo &quot;du -sk | sort -n&quot;
-du -sk * | sort -n
-echo;echo &quot;df -h &quot;
-df -h /var/lib/jenkins
+# echo
+# cd /var/lib/jenkins
+# pwd
+# echo; echo &quot;du -sh &quot;
+# du -sh .
+# echo
+# du -sh *
+# echo; echo &quot;du -sk | sort -n&quot;
+# du -sk * | sort -n
+# echo;echo &quot;df -h &quot;
+# df -h /var/lib/jenkins
 
 
-echo; echo &quot;lsof&quot;
-lsof | grep &apos;(deleted)&apos;</command>
+# echo; echo &quot;lsof&quot;
+# lsof | grep &apos;(deleted)&apos;</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
