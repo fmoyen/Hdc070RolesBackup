@@ -72,7 +72,7 @@ ping 10.3.76.24 -c1
 
     RC=0;ssh 10.3.76.24 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
     if [ $RC != &quot;0&quot; ]; then :
-      echo &quot;Oprpington not reachable, retry VPN connection&quot;
+      echo &quot;Orpington not reachable, retry VPN connection&quot;
       echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
 	fi
     
