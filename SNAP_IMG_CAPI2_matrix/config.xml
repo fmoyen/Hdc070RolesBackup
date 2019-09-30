@@ -469,7 +469,7 @@ cd ${SNAP_ROOT}
 #export VIV_VERSION=&quot;2018.2&quot;  # 2018.3 IS JUST FOR TESTING NEW CAPI-BSP 2019 04 16
 
 # testing 2019.1
-export VIV_VERSION=&quot;2019.1
+export VIV_VERSION=&quot;2019.1&quot;
 echo &quot;VIVADO version initially set to $VIV_VERSION (check if we change this later for some card specificity)&quot;
 echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
 echo &quot;TIMING LIMIT set to -300&quot;
