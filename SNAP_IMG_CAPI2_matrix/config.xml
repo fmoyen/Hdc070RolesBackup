@@ -7,6 +7,7 @@ WARNING !!! &#xd;
 =&gt;&gt; FX609, S241, RCXVUP, U200 cards are not available for test =&gt; only binary generation are performed (no hw test)  &#xd;
 =&gt;&gt; TIMING increased to 300ps for CAPI2&#xd;
 ==&gt; default is 2018.2 (as 2018.3 has a bug affecting CAPI-BSP)   we force 2018.3 for U200 and eventually 2017.4 for RCXVUP !!   &#xd;
+Current temporary test in 2019.1&#xd;
 ==&gt; Brahma being down, no N250SP tests available, Lewen05 is not availbale =&gt; AD9V3 can not be P9 tested either              &#xd;
 &#xd;
 RCXVUP_nCL removed from matrix to reduce load&#xd;
@@ -464,7 +465,11 @@ echo &quot;J:git cloning capi2-bsp submodule&quot;
 echo &quot;export PSL9_IP_CORE=/afs/bb/proj/fpga/framework/cards/$CRD/ibm.com_CAPI_PSL9_WRAP_2.00.zip&quot; &gt;&gt;snap_env.sh
 git submodule update --init --recursive hardware/capi2-bsp
 cd ${SNAP_ROOT}
-export VIV_VERSION=&quot;2018.2&quot;  # 2018.3 IS JUST FOR TESTING NEW CAPI-BSP 2019 04 16
+# older config untill oct1st 2019
+#export VIV_VERSION=&quot;2018.2&quot;  # 2018.3 IS JUST FOR TESTING NEW CAPI-BSP 2019 04 16
+
+# testing 2019.1
+export VIV_VERSION=&quot;2019.1
 echo &quot;VIVADO version initially set to $VIV_VERSION (check if we change this later for some card specificity)&quot;
 echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
 echo &quot;TIMING LIMIT set to -300&quot;
@@ -477,8 +482,8 @@ case $CRD in
             export VIV_VERSION=&quot;2017.4&quot;
             #echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
             ;;
-  &apos;U200&apos;)   export VIV_VERSION=&quot;2018.3&quot;
-            ;;            
+#  &apos;U200&apos;)   export VIV_VERSION=&quot;2018.3&quot;  removed or 2019.1 test
+#            ;;            
 esac
 
 
