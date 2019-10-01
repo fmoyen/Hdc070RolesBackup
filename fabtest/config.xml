@@ -110,20 +110,26 @@ echo &quot;## ~/.ssh/config&quot;
 ls -lad ~/.ssh/config
 cat ~/.ssh/config
 echo
-echo &quot;ssh hostname onto orpington testing:&quot;
-export SSHPASS=XXXXXXXXX
-sshpass -e ssh -o afstokenpassing=no fmoyen@10.3.76.24 hostname
+echo &quot;## ~/.ssh/known_hosts&quot;
+ls -lad ~/.ssh/known_hosts
+cat ~/.ssh/known_hosts
 
-#echo
-#echo &quot;## SSH TEST&quot;
-#ssh lewen05 hostname
+# echo
+# echo &quot;ssh hostname onto orpington testing:&quot;
+# export SSHPASS=XXXXXXXXX
+# sshpass -e ssh -o afstokenpassing=no fmoyen@10.3.76.24 hostname
 
-#RC=0;ssh lewen05 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen05
-#if [ $RC != &quot;0&quot; ]; then :
-#  echo &quot;lewen05 not reachable, retry VPN connection&quot;
-#else
-#  echo &quot;ssh lewen05 OK&quot;
-#fi
+echo
+echo &quot;## SSH TEST&quot;
+ssh orpington hostname
+
+RC=0;ssh orpington ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach orpington
+if [ $RC != &quot;0&quot; ]; then :
+  echo &quot;orpington not reachable, retry VPN connection&quot;
+else
+  echo &quot;ssh orpington OK&quot;
+  ssh orpington &apos;echo &quot;`whoami` on `hostname`&quot;&apos;
+fi
 
 #######################################
 # SSH &amp; AFS investigation
