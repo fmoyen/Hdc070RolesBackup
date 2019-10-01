@@ -105,13 +105,13 @@ echo &quot;#####################################&quot;
 #######################################
 # SSH &amp; AFS investigation
 
-# echo
-# echo &quot;## ~/.ssh/config&quot;
-# ls -lad ~/.ssh/config
-# cat ~/.ssh/config
+echo
+echo &quot;## ~/.ssh/config&quot;
+ls -lad ~/.ssh/config
+cat ~/.ssh/config
 echo
 echo &quot;ssh hostname onto orpington testing:&quot;
-export SSHPASS=XXXXXXXX
+export SSHPASS=XXXXXXXXX
 sshpass -e ssh -o afstokenpassing=no fmoyen@10.3.76.24 hostname
 
 #echo
