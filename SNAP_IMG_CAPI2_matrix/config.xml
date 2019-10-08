@@ -431,7 +431,9 @@ LSF=&quot;-P zsort&quot;
 LSF+=&quot; -M 6&quot;                      # 12GB memory
 LSF+=&quot; -C 2000&quot;                   # 2MB core file
 # AC 2019 10 08 : forcing RH7 for Vivado 2019.1
-LSF+=&apos; -R &quot;select [osver=rh7 &amp;&amp; type==X86_64 &amp;&amp; span[hosts=1]]&quot;&apos;
+LSF+=&apos; -R select osver=rh7&apos;
+LSF+=&apos; -R type==X86_64&apos;
+LSF+=&apos; -R span[hosts=1]&apos;
 # AC : older configuration
 # LSF+=&apos; -R type=X86_64 -R span[hosts=1]&apos;
 LSF+=&quot; -I -n 8&quot;
