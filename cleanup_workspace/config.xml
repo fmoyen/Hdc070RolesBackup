@@ -41,6 +41,12 @@
 #rm -rf /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/U200_nCL/builds/194/
 #ls -al /var/lib/jenkins/jobs/SNAP_IMG_CAPI2_matrix/configurations/axis-ACT/hdl_example.NORAM/axis-CRD_CL/AD9V3_nCL/builds/194
 #rm -rf /afs/vlsilab.boeblingen.ibm.com/proj/fpga/framework/CI_ws/SNAP_IMG_CAPI2_matrix/snap_make_u200/ACT/hdl_example.NORAM
+
+# cleaning OpenCAPI SIM structure
+rm -rf /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_SIM_matrix/master
+rm -rf /var/lib/jenkins/jobs/OC_Sim_Matrix/*
+
+
 cd /var/lib/ 
 du -sh
 #cd /data/SNAP_Images
