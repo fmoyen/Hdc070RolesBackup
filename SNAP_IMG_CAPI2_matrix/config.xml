@@ -420,11 +420,30 @@ echo &quot;testboxes1=${TESTBOXES[@]}&quot;
 
 echo &quot;****************************************************************************************&quot;
 echo &quot;J:LSF SETUP ...&quot;
-export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
-export LSF_SERVERDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/etc
-export LSF_LIBDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
-export LSF_BINDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
+
+
+# previous settings :
+# export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
+# export LSF_SERVERDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/etc
+# export LSF_LIBDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/lib
+# export LSF_BINDIR=/home/lsfbb/prod/10.1/linux2.6-glibc2.3-x86_64/bin
+# export LSF_SUBMITTER_OSTYPE=Linux
+# export LSF_ENVDIR=/home/lsfbb/prod/conf
+
+# Rolf recommendations :
+# LSF_BINDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/bin
+# LSF_ENVDIR=/home/lsfbb/prod/conf
+# LSF_LIBDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/lib
+# LSF_SERVERDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/etc
+# LSF_SUBMITTER_OSTYPE=Linux
+
+# tested settings :
+export PATH=$PATH:/usr/local/bin:/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/bin
+export LSF_SERVERDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/etc
+export LSF_LIBDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/lib
+export LSF_BINDIR=/home/lsfbb/prod/10.1/linux3.10-glibc2.17-x86_64/bin
 export LSF_SUBMITTER_OSTYPE=Linux
 export LSF_ENVDIR=/home/lsfbb/prod/conf
 LSF=&quot;-P zsort&quot;
