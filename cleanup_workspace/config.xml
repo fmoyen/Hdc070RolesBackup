@@ -43,8 +43,8 @@
 #rm -rf /afs/vlsilab.boeblingen.ibm.com/proj/fpga/framework/CI_ws/SNAP_IMG_CAPI2_matrix/snap_make_u200/ACT/hdl_example.NORAM
 
 # cleaning OpenCAPI SIM structure
-rm -rf /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_SIM_matrix/master
-rm -rf /var/lib/jenkins/jobs/OC_Sim_Matrix/*
+# rm -rf /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_SIM_matrix/master
+# rm -rf /var/lib/jenkins/jobs/OC_Sim_Matrix/* ==&gt;&gt; NOT GOOD !!
 
 
 cd /var/lib/ 
