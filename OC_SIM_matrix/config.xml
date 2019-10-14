@@ -92,7 +92,7 @@ Contacts : jkayser@de.ibm.com or alexandre.castellane@fr.ibm.com</description>
     <submoduleCfg class="list"/>
     <extensions>
       <hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
-        <relativeTargetDir>oc-snap</relativeTargetDir>
+        <relativeTargetDir>snap</relativeTargetDir>
       </hudson.plugins.git.extensions.impl.RelativeTargetDirectory>
       <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
       <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
