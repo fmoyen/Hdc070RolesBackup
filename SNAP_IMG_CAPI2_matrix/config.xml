@@ -227,18 +227,19 @@ if [ &quot;$ACTION_TYPE&quot; == &quot;hdl&quot;    ] &amp;&amp; [ &quot;$HDL&qu
 if [ &quot;$ACTION_TYPE&quot; == &quot;hls&quot;    ] &amp;&amp; [ &quot;$HLS&quot;    == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;N250SP&quot; ] &amp;&amp; [ &quot;$N250SP&quot; == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;AD9V3&quot;  ] &amp;&amp; [ &quot;$AD9V3&quot;  == &quot;false&quot; ]; then BSKIP=1;fi
+if [ &quot;$CRD&quot;         == &quot;AD9H3&quot;  ] &amp;&amp; [ &quot;$AD9H3&quot;  == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;U200&quot;   ] &amp;&amp; [ &quot;$U200&quot;   == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;FX609&quot;  ] &amp;&amp; [ &quot;$FX609&quot;  == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;S241&quot;   ] &amp;&amp; [ &quot;$S241&quot;   == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$CRD&quot;         == &quot;RCXVUP&quot; ] &amp;&amp; [ &quot;$RCXVUP&quot; == &quot;false&quot; ]; then BSKIP=1;fi
 if [ &quot;$ACT&quot;         == &quot;test&quot;   ]; then BSKIP=0;fi
-echo &quot;examples(hdl,hls)=$HDL $HLS card_enabled(N250SP,AD9V3,S241,FX609,U200,RCXVUP)=$N250SP $AD9V3 $S241 $FX609 $U200 $RCXVUP BSKIP=$BSKIP&quot;
+echo &quot;examples(hdl,hls)=$HDL $HLS card_enabled(N250SP,AD9V3,AD9H3,S241,FX609,U200,RCXVUP)=$N250SP $AD9V3 $AD9H3 $S241 $FX609 $U200 $RCXVUP BSKIP=$BSKIP&quot;
 
 #debug AC
   case &quot;$BSKIP&quot; in
     1 )
 #        echo &quot;mail sent to castella informing BSKIPPING&quot;
-#        mail -s &quot;DEBUG! BSKIP SET TO 1 build(nCL,CL)= examples(hdl,hls)=$HDL $HLS card_enabled(N250SP,AD9V3,S241,FX609,U200,RCXVUP)=$N250SP $AD9V3 $S241 $FX609 $U200 $RCXVUP&quot; castella
+#        mail -s &quot;DEBUG! BSKIP SET TO 1 build(nCL,CL)= examples(hdl,hls)=$HDL $HLS card_enabled(N250SP,AD9V3,AD9H3,S241,FX609,U200,RCXVUP)=$N250SP $AD9V3 $AD9H3 $S241 $FX609 $U200 $RCXVUP&quot; castella
         ;;
   esac
 #debug AC  
@@ -492,7 +493,7 @@ echo &quot;#setup: XILINX_LOCAL_USER_DATA=${XILINX_LOCAL_USER_DATA}, overwrite=n
 echo &quot;export XILINX_LOCAL_USER_DATA=no&quot; &gt;&gt; snap_env.sh
 echo &quot;&quot;
 echo &quot;J:Setting up the VIVADO version. PSL9_IP_CORE set for CAPI2.0 Cards and Timing to -300ps&quot;
-echo &quot;J:For all CAPI2 cards (but RCXVUP) we run 2018.2 and extend Timing trials to 5 runs until we optimise placement&quot;
+echo &quot;J:For all CAPI2 cards (but RCXVUP) we run 2018.3 and extend Timing trials to 5 runs until we optimise placement&quot;
 echo &quot;J:NOTE : 2018.3 has a bug affecting CAPI-BSP IP&quot;
 echo &quot;J:git cloning capi2-bsp submodule&quot;
 echo &quot;export PSL9_IP_CORE=/afs/bb/proj/fpga/framework/cards/$CRD/ibm.com_CAPI_PSL9_WRAP_2.00.zip&quot; &gt;&gt;snap_env.sh
@@ -502,7 +503,7 @@ cd ${SNAP_ROOT}
 #export VIV_VERSION=&quot;2018.2&quot;  # 2018.3 IS JUST FOR TESTING NEW CAPI-BSP 2019 04 16
 
 # testing 2019.1 aborted as pb with LSF
-export VIV_VERSION=&quot;2018.2&quot;
+export VIV_VERSION=&quot;2018.3&quot;
 echo &quot;VIVADO version initially set to $VIV_VERSION (check if we change this later for some card specificity)&quot;
 echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
 echo &quot;TIMING LIMIT set to -300&quot;
@@ -655,7 +656,8 @@ case $CRD:${TEST_ON_HW} in
   S121B:* )  SAVE=&quot;/data/Images/S121B_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   FX609:* )  SAVE=&quot;/data/Images/FX609_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   S241:* )   SAVE=&quot;/data/Images/S241_missing&quot;;    echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
-#  AD9V3:* )  SAVE=&quot;/data/Images/AD9V3_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
+#  AD9V3:* )  SAVE=&quot;/data/Images/AD9V3_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
+#  AD9H3:* )  SAVE=&quot;/data/Images/AD9H3_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;
   U200:* )   SAVE=&quot;/data/Images/U200_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
   RCXVUP:* ) SAVE=&quot;/data/Images/RCXVUP_missing&quot;;  echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   *:false )  SAVE=&quot;/data/Images/no_test_required&quot;;echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
@@ -855,6 +857,7 @@ SPI8=0
 case $CRD in
   &quot;AD9V3&quot;)  SPI8=1;;            
   &quot;RCXVUP&quot;) SPI8=1;;
+  &quot;AD9H3&quot;) SPI8=1;;
   *)        SPI8=0;;
 esac   
 #AC adding SPI8 Variable

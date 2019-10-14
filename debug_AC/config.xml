@@ -24,10 +24,12 @@
   <builders>
     <hudson.tasks.Shell>
       <command># $SAVE is not created by default for new cards
-# if test are used before creating the dir, a file
-# $CRD_missing is created and over and overwritten,
+# if tests are used before creating the dir, a file
+# $CRD_missing file is created and overwritten,
 # it must be erased first !
-# cd /data/Images
+cd /data/Images
+mkdir AD9H3_missing
+chmod 750 AD9H3_missing
 # mkdir RCXVUP_missing
 # chmod 750 RCXVUP_missing
 # rm S241_missing
@@ -39,18 +41,18 @@
 # mkdir AD9V3_missing
 # chmod 750 AD9V3_missing
 
-pwd
+#pwd
 #ls -al
-cd 
-ls -al
+#cd 
+#ls -al
 
 #cp /afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/jenkins_mods/ACT/hls_helloworld/CRD_CL/AD9V3_nCL/snap/hardware/build/Images/* /data/Images/card_not_avail/
 #
 #rm core.*
-cd .ssh
+#cd .ssh
 #ls -al
 #more config
-more known_hosts
+#more known_hosts
 #more authorized_keys
 
 #UPDATE CONFIG file containing IP &lt;&gt; name relationship
@@ -68,13 +70,13 @@ more known_hosts
 #ping -c2 brahma
 #ping -c2 lewen5
 #more id_rsa.pub
-ping 10.3.76.24 -c1
+#ping 10.3.76.24 -c1
 
-    RC=0;ssh 10.3.76.24 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
-    if [ $RC != &quot;0&quot; ]; then :
-      echo &quot;Orpington not reachable, retry VPN connection&quot;
-      echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
-	fi
+#    RC=0;ssh 10.3.76.24 ping localhost -c1 &gt;/dev/null 2&gt;&amp;1 || RC=$? # cannot reach lewen5
+#    if [ $RC != &quot;0&quot; ]; then :
+#      echo &quot;Orpington not reachable, retry VPN connection&quot;
+#      echo &quot;VPN processes=`ps -ef|grep vpn`&quot;
+#	fi
     
 #
 #ls -al
