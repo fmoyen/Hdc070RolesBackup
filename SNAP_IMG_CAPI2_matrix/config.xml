@@ -6,7 +6,7 @@ In case of problems: please contact alexandre.castellane@fr.ibm.com&#xd;
 WARNING !!! &#xd;
 =&gt;&gt; FX609, S241, RCXVUP, U200 cards are not available for test =&gt; only binary generation are performed (no hw test)  &#xd;
 =&gt;&gt; TIMING increased to 300ps for CAPI2&#xd;
-==&gt; default is 2018.2 (as 2018.3 has a bug affecting CAPI-BSP)   we force 2018.3 for U200 and eventually 2017.4 for RCXVUP !!   &#xd;
+==&gt; default is now 2018.3 (was already forced for to 2018.3 for U200 and eventually 2017.4 for RCXVUP)&#xd;
 &#xd;
 Test in 2019.1 unsuccessful since glic 2.14 requested by vivado &amp; not installed ?&#xd;
 back to secure 2018.1 to validate enabling_9H3 branch&#xd;
@@ -250,6 +250,8 @@ echo &quot;examples(hdl,hls)=$HDL $HLS card_enabled(N250SP,AD9V3,AD9H3,S241,FX60
 # ASKIP may stand for ACTION skip
 case &quot;$CRD:$ACT&quot; in
   *:scatter_gather* )    C=&quot;scc1&quot;;ASKIP=1;; # no scatter_gather for CAPI1 cards
+  AD9H3:hdl_example.SDRAM* ) C=&quot;hnsd&quot;;ASKIP=1;; # AD9H3 has no SDRAM
+  AD9H3:hls_memcopy ) C=&quot;hnsd&quot;;ASKIP=1;; # AD9H3 has no SDRAM
 #  N250SP:hls_helloworld )C=&quot;SPhw&quot;;ASKIP=1;; # disabled, until N250SP allows more than 128B DMA xfers
   N250SP:*NVME*)         C=&quot;SPNV&quot;;ASKIP=1;; # disabled, as Nvme not yet available
   N250SP:*nvme*)         C=&quot;SPnv&quot;;ASKIP=1;; # disabled, as Nvme not yet available
