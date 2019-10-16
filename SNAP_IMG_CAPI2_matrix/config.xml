@@ -209,7 +209,7 @@ set +x
 echo &quot;****************************************************************************************&quot;
 echo &quot;`date` BUILD START&quot;
 echo &quot;****************************************************************************************&quot;
-echo &quot;EXECUTING CAPI2.0 IMG FIRST SHELL FROM JENKINS - V1.2 - 2019 feb 05 - ...&quot;
+echo &quot;EXECUTING CAPI2.0 IMG FIRST SHELL FROM JENKINS - V1.4 - 2019 October 16th - ...&quot;
 echo &quot;****************************************************************************************&quot;
 CRD=$(echo $CRD_CL| cut -d&apos;_&apos; -f 1)    # chars up to  first &apos;_&apos; identify card
 CL=$(echo $CRD_CL| cut -d&apos;_&apos; -f 2)     # chars behind first &apos;_&apos; identify Cloud build
@@ -415,7 +415,7 @@ fi
 set +x                            # reduce Jenkins output
 ulimit -c unlimited               # limit core dumps
 echo &quot;****************************************************************************************&quot;
-echo &quot;EXECUTING SECOND CAPI2 SHELL FROM JENKINS - V1.3 - 2019 June 26th - ...&quot;
+echo &quot;EXECUTING SECOND CAPI2 SHELL FROM JENKINS - V1.4 - 2019 October 16th - ...&quot;
 echo &quot;****************************************************************************************&quot;
 export PATH=$PATH:/usr/local/bin  # python3 needs this path setup
 export USERHOME=`pwd`
