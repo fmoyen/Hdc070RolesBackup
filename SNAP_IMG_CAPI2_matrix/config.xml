@@ -252,6 +252,12 @@ case &quot;$CRD:$ACT&quot; in
   *:scatter_gather* )    C=&quot;scc1&quot;;ASKIP=1;; # no scatter_gather for CAPI1 cards
   AD9H3:hdl_example.SDRAM* ) C=&quot;hnsd&quot;;ASKIP=1;; # AD9H3 has no SDRAM
   AD9H3:hls_memcopy ) C=&quot;hnsd&quot;;ASKIP=1;; # AD9H3 has no SDRAM
+  AD9H3:hls_bfs ) C=&quot;hndf&quot;;ASKIP=1;; # AD9H3 has no defconfig
+  AD9H3:hls_hashjoin ) C=&quot;hndf&quot;;ASKIP=1;; # AD9H3 has no defconfig
+  AD9H3:hls_search ) C=&quot;hnsd&quot;;ASKIP=1;; # AD9H3 has no SDRAM
+  AD9H3:hls_sponge ) C=&quot;hndf&quot;;ASKIP=1;; # AD9H3 has no defconfig
+  AD9H3:hls_scatter_gather ) C=&quot;hndf&quot;;ASKIP=1;; # AD9H3 has no defconfig
+  AD9H3:hls_vector_generator ) C=&quot;hndf&quot;;ASKIP=1;; # AD9H3 has no defconfig  
 #  N250SP:hls_helloworld )C=&quot;SPhw&quot;;ASKIP=1;; # disabled, until N250SP allows more than 128B DMA xfers
   N250SP:*NVME*)         C=&quot;SPNV&quot;;ASKIP=1;; # disabled, as Nvme not yet available
   N250SP:*nvme*)         C=&quot;SPnv&quot;;ASKIP=1;; # disabled, as Nvme not yet available
