@@ -137,7 +137,7 @@ H 22-23/1 * * *</spec>
         <string>hdl_example.SDRAM</string>
         <string>hdl_example.BRAM</string>
         <string>hls_helloworld</string>
-        <string>hls_memcopy</string>
+        <string>hls_memcopy_1024</string>
         <string>test</string>
       </values>
     </hudson.matrix.TextAxis>
@@ -519,6 +519,10 @@ mkdir -p /data/Images/${DIR}
 case $CRD:${TEST_ON_HW} in
   AD9V3:* )    SAVE=&quot;/data/Images/AD9V3_oc_missing&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
   AD9V3:* )    SAVE=&quot;/data/Images/AD9V3_oc_missing&quot;;     echo &quot;no test required, copy bitfile to $SAVE&quot;;cp -rp $BITFILES $SAVE;exit 0;;
+  AD9H3:* )    SAVE=&quot;/data/Images/AD9H3_oc_missing&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
+  AD9H3:* )    SAVE=&quot;/data/Images/AD9H3_oc_missing&quot;;     echo &quot;no test required, copy bitfile to $SAVE&quot;;cp -rp $BITFILES $SAVE;exit 0;;
+  AD9H7:* )    SAVE=&quot;/data/Images/AD9H7_oc_missing&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
+  AD9H7:* )    SAVE=&quot;/data/Images/AD9H7_oc_missing&quot;;     echo &quot;no test required, copy bitfile to $SAVE&quot;;cp -rp $BITFILES $SAVE;exit 0;;
   INNOVA2:* )  SAVE=&quot;/data/Images/INNOVA2_oc_missing&quot;;   echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;    
   *:false )    SAVE=&quot;/data/Images/no_test_required&quot;;     echo &quot;no test required, copy image to $SAVE&quot;;cp -rp $BINFILES $SAVE;exit 0;;
 esac

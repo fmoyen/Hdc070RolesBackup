@@ -287,7 +287,7 @@ case $CRD in
   *) 		branch=&apos;master&apos;;;
 esac
 echo &quot;Get OpenCAPI Simulation Environment branch=$branch for card=$CRD...&quot;
-git clone -b $branch git@github.ibm.com:lancet/ocse ocse;echo &quot;git clone RC=$?&quot;
+git clone -b $branch https://github.com/OpenCAPI/ocse ocse;echo &quot;git clone RC=$?&quot;
 export OCSE_INSTALL_DIR=../ocse
 
 cd ${SNAP_ROOT}
@@ -420,11 +420,14 @@ cd ${SNAP_ROOT}/hardware/sim
 # ./run_sim -list testlist.sh -noaet
 ##### execute on AFS with LSF, report error as unstable build
 case $SIM in
-# proper directory action/sim_test.sh
-#  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
+# run in the proper ${ACT} directory /tests/hw_test.sh
+  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./actions/${ACT}/tests -list hw_test.sh -noaet&quot;||exit 100;;
+
+# older way to run with capi snap
 #  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
 #  &apos;irun&apos;|&apos;IRUN&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -irun -list testlist.sh -noaet&quot;||exit 100;;
 #  *)              bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
+
 esac
 
 </command>
