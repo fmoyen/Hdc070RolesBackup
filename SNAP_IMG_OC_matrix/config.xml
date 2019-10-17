@@ -58,11 +58,6 @@ Enable/disable testing on HW</description>
           <defaultValue>false</defaultValue>
         </hudson.model.BooleanParameterDefinition>
         <hudson.model.BooleanParameterDefinition>
-          <name>Innova2</name>
-          <description>enable/disable the Innova2 card</description>
-          <defaultValue>false</defaultValue>
-        </hudson.model.BooleanParameterDefinition>
-        <hudson.model.BooleanParameterDefinition>
           <name>FACTORY</name>
           <description>Used to generate a FACTORY image for hdl_example.NORAM cases. Files are copied in /data/Images/card_FACTORY_MCS directory
 =&gt; Bug: it prevents proper test of SPI dual bin configurations</description>
@@ -158,7 +153,7 @@ H 22-23/1 * * *</spec>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD_CL=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H3&quot;   &amp;&amp; AD9H3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H7&quot; &amp;&amp; AD9H7==&quot;true&quot;) ) ) || (ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;AD9V3_nCL&quot;)</combinationFilter>
+  <combinationFilter>(  ((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD_CL=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H3&quot;   &amp;&amp; AD9H3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H7&quot; &amp;&amp; AD9H7==&quot;true&quot;) ) ) || (ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;AD9V3_nCL&quot;)</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>                #!/bin/bash
@@ -388,9 +383,9 @@ echo &quot;*********************************************************************
 echo &quot;J:Setting up Vivado and timing value&quot;
 echo &quot;#setup: XILINX_LOCAL_USER_DATA=${XILINX_LOCAL_USER_DATA}, overwrite=no to prevent write access error in XilincTclStore (tclapp:load_apps)&quot; &gt;&gt;snap_env.sh
 echo &quot;export XILINX_LOCAL_USER_DATA=no&quot; &gt;&gt; snap_env.sh
-echo &quot;J:For all OPENCAPI cards we run 2018.2 and extend Timing trials to 5 runs until we optimise placement&quot;
+echo &quot;J:For all OPENCAPI cards we run 2018.3 and extend Timing trials to 5 runs until we optimise placement&quot;
 cd ${SNAP_ROOT}
-export VIV_VERSION=&quot;2018.2&quot;
+export VIV_VERSION=&quot;2018.3&quot;
 echo &quot;VIVADO version initially set to $VIV_VERSION (check if we change this later for some card specificity)&quot;
 echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
 echo &quot;TIMING LIMIT set to -300&quot;
