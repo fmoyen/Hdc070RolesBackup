@@ -413,7 +413,7 @@ bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}_model&quot; &quot;make model&quot;|| exi
 
 echo &quot;********************************************************************************&quot;
 echo &quot;Run $SIM Simulation ...&quot;
-#cd ${SNAP_ROOT}/hardware/sim
+cd ${SNAP_ROOT}/hardware/sim
 ##### enable SW trace
 # export SNAP_TRACE=0xf
 ##### execute locally
@@ -421,7 +421,7 @@ echo &quot;Run $SIM Simulation ...&quot;
 ##### execute on AFS with LSF, report error as unstable build
 case $SIM in
 # run in the proper ${ACT} directory /tests/hw_test.sh
-  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./${SNAP_ROOT}/hardware/sim/run_sim -list ./actions/${ACT}/tests/hw_test.sh -noaet&quot;||exit 100;;
+  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;${SNAP_ROOT}/hardware/sim/run_sim -list ../../actions/${ACT}/tests/hw_test.sh -noaet&quot;||exit 100;;
 
 # older way to run with capi snap
 #  &apos;xsim&apos;|&apos;XSIM&apos; ) bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}&quot; &quot;./run_sim -list testlist.sh -noaet&quot;||exit 100;;
