@@ -1,18 +1,16 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <matrix-project plugin="matrix-project@1.14">
   <actions/>
-  <description>Builds bitstreams with many different configurations and tests this images on real HW if possible.&#xd;
+  <description>Builds bitstreams with different configurations and tests images on real HW if possible.&#xd;
 In case of problems: please contact alexandre.castellane@fr.ibm.com&#xd;
 Only AD9V3 card is available for test&#xd;
-Vivado version used : 2018.2 so far&#xd;
-local P9 snap_find_card is used with OC-$CRD prefix&#xd;
-Main Issue : after flashing the oc-reset doesn&apos;t cut the power supply, and FPGA is not refreshed !!&#xd;
+Vivado version used : 2018.3 so far, tests on goiing for 2019.1 (issue with lsf / RH7)&#xd;
 &#xd;
-!!!!! DRAFT UNDER CONSTRUCTION !!!!&#xd;
-=&gt;not master yet :&#xd;
-    - hls_memcopy_1024&#xd;
-    - hls_latency_eval_1024&#xd;
-=&gt; hdl_example.NORAM has an issue at config level (same as for CAPI2)</description>
+WARNING : local P9 snap_find_card is used with OC-$CRD prefix&#xd;
+&#xd;
+Main Issue : after flashing the oc-reset doesn&apos;t cut the power supply, and FPGA is not refreshed !! Need &quot;Power9 reload routine&quot;&#xd;
+&#xd;
+=&gt; hdl_example.NORAM had an issue at config level (same as for CAPI2) to be confirmed</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
@@ -145,10 +143,12 @@ H 22-23/1 * * *</spec>
       <name>CRD_CL</name>
       <values>
         <string>AD9V3_nCL</string>
+        <string>AD9H3_nCL</string>
+        <string>AD9H7_nCL</string>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>(  ((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD_CL=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD_CL=~&quot;INNOVA2&quot;   &amp;&amp; INNOVA2==&quot;true&quot;) || (CRD_CL=~&quot;RCXVUP&quot; &amp;&amp; RCXVUP==&quot;true&quot;) ) ) || (ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;AD9V3_nCL&quot;)</combinationFilter>
+  <combinationFilter>((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD_CL=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H3&quot;   &amp;&amp; AD9H3==&quot;true&quot;) || (CRD_CL=~&quot;AD9H7&quot; &amp;&amp; AD9H7==&quot;true&quot;) ) ) || (ACT==&quot;test&quot; &amp;&amp; CRD_CL==&quot;AD9V3_nCL&quot;)</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>                #!/bin/bash
