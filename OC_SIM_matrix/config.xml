@@ -386,7 +386,7 @@ case $ACT in                    # select config &amp; compile action
     
     # before rh7 issue we did : make $CRD.$ACT.defconfig
     # since we need RH7 we use LSF:
-    bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}_defconfig&quot; &quot;hostname;lsb_release -a;make $CRD.$ACT.defconfig&quot;|| exit 1
+    bsub $LSF -J &quot;${CRD}_${ACT}_${SIM}_defconfig&quot; &quot;hostname;lsb_release -a&quot;|| exit 1
     ;;
 esac
 case $SIM:$ACT in
