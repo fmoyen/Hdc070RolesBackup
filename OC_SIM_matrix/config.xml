@@ -137,7 +137,7 @@ H 18-23/4 * * *</spec>
       </values>
     </hudson.matrix.TextAxis>
   </axes>
-  <combinationFilter>(  ((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD=~&quot;AD9H3&quot;   &amp;&amp; AD9H3==&quot;true&quot;) || (CRD=~&quot;AD9H7&quot; &amp;&amp; AD9H7==&quot;true&quot;) ) ) || (ACT==&quot;test&quot; &amp;&amp; CRD==&quot;AD9V3&quot;)</combinationFilter>
+  <combinationFilter>(  ((ACT=~&quot;hls&quot; &amp;&amp; HLS==&quot;true&quot;)||(ACT=~&quot;hdl&quot; &amp;&amp; HDL==&quot;true&quot; ))  &amp;&amp; ( (CRD=~&quot;AD9V3&quot;  &amp;&amp; AD9V3==&quot;true&quot;) || (CRD=~&quot;AD9H3&quot;   &amp;&amp; AD9H3==&quot;true&quot;) || (CRD=~&quot;AD9H7&quot; &amp;&amp; AD9H7==&quot;true&quot;) ) &amp;&amp; ( (CRD=~&quot;AD9H&quot;   &amp;&amp; (AD9H3==&quot;true&quot;|| AD9H7==&quot;true&quot;) &amp;&amp; !(ACT=~&quot;DDR&quot;)) )  ) || (ACT==&quot;test&quot; &amp;&amp; CRD==&quot;AD9V3&quot;)</combinationFilter>
   <builders>
     <hudson.tasks.Shell>
       <command>#!/bin/bash
