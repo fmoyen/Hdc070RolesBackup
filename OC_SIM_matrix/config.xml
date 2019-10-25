@@ -291,8 +291,8 @@ LSF=&apos;-P zsort -M 2 -C 2000 -I -n 4 -R type=X86_64 -R span[hosts=1]&apos;  #
 echo &quot;*******************************************************************************&quot;
 rm -rf ocse
 case $CRD in 
-  #*) 		branch=&apos;issue26&apos;;;
-  *) 		branch=&apos;master&apos;;;
+  *) 		branch=&apos;issue_2&apos;;;
+  #*) 		branch=&apos;master&apos;;;
 esac
 echo &quot;J: Get OpenCAPI Simulation Environment branch=$branch for card=$CRD...&quot;
 git clone -b $branch https://github.com/OpenCAPI/ocse ocse;echo &quot;git clone RC=$?&quot;
@@ -489,7 +489,7 @@ echo &quot;`date` SIM EXIT&quot;</script>
     </hudson.plugins.ws__cleanup.PreBuildCleanup>
     <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
       <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
-        <timeoutMinutes>300</timeoutMinutes>
+        <timeoutMinutes>60</timeoutMinutes>
       </strategy>
       <operationList>
         <hudson.plugins.build__timeout.operations.FailOperation/>
