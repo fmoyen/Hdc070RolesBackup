@@ -9,8 +9,6 @@ WARNING !!! &#xd;
 ==&gt; default is now 2018.3 (was already forced for to 2018.3 for U200 and eventually 2017.4 for RCXVUP)&#xd;
 &#xd;
 Test in 2019.1 unsuccessful since glic 2.14 requested by vivado &amp; not installed ?&#xd;
-back to secure 2018.1 to validate enabling_9H3 branch&#xd;
-then test with 2018.3 if pb solved&#xd;
 &#xd;
 ==&gt; Brahma hosts N250SP tests available.      &#xd;
 ==&gt; Orpington hosts 2 AD9V3&#xd;
