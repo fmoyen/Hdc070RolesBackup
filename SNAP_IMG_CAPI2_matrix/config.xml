@@ -6,7 +6,7 @@ In case of problems: please contact alexandre.castellane@fr.ibm.com&#xd;
 WARNING !!! &#xd;
 =&gt;&gt; FX609, S241, RCXVUP, U200 cards are not available for test =&gt; only binary generation are performed (no hw test)  &#xd;
 =&gt;&gt; TIMING increased to 300ps for CAPI2&#xd;
-==&gt; default is now 2018.3 (was already forced for to 2018.3 for U200 and eventually 2017.4 for RCXVUP)&#xd;
+==&gt; default is now 2018.3 (was already forced for to 2018.3 for U200 and eventually 2017.4 for RCXVUP, and 2018.2(pcigen4) for N250SP)&#xd;
 &#xd;
 Test in 2019.1 unsuccessful since glic 2.14 requested by vivado &amp; not installed ?&#xd;
 &#xd;
@@ -523,7 +523,13 @@ case $CRD in
             #echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
             ;;
 #  &apos;U200&apos;)   export VIV_VERSION=&quot;2018.3&quot;  removed or 2019.1 test
-#            ;;            
+#            ;;  
+  &apos;N250SP&apos;) #echo &quot;export PSL9_IP_CORE=/afs/bb/proj/fpga/framework/cards/$CRD/ibm.com_CAPI_PSL9_WRAP_2.00.zip&quot; &gt;&gt;snap_env.sh
+            #git submodule update --init --recursive hardware/capi2-bsp
+            #cd ${SNAP_ROOT}
+            export VIV_VERSION=&quot;2018.2&quot;
+            #echo &quot;export TIMING_LABLIMIT=\&quot;-300\&quot;&quot; &gt;&gt; snap_env.sh
+            ;;
 esac
 
 
