@@ -121,11 +121,7 @@ AC922 8335-GTH: orpington with CAPI2 and OC AD9V3s</description>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.3">
-      <spec></spec>
-    </com.cloudbees.jenkins.GitHubPushTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>true</concurrentBuild>
   <customWorkspace>/afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/${BRANCH}</customWorkspace>
   <axes>
