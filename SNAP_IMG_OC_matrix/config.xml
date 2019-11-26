@@ -13,10 +13,6 @@ Main Issue : after flashing the oc-reset doesn&apos;t cut the power supply, and 
 =&gt; hdl_example.NORAM had an issue at config level (same as for CAPI2) to be confirmed</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
-      <projectUrl>https://github.ibm.com/OC_Enablement/oc-snap/</projectUrl>
-      <displayName></displayName>
-    </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
@@ -72,6 +68,10 @@ AC922 8335-GTH: orpington with CAPI2 and OC AD9V3s</description>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
+      <projectUrl>https://github.ibm.com/OC_Enablement/oc-snap/</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
       <maxConcurrentPerNode>1</maxConcurrentPerNode>
       <maxConcurrentTotal>10</maxConcurrentTotal>
@@ -125,11 +125,6 @@ AC922 8335-GTH: orpington with CAPI2 and OC AD9V3s</description>
     <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.29.3">
       <spec></spec>
     </com.cloudbees.jenkins.GitHubPushTrigger>
-    <hudson.triggers.SCMTrigger>
-      <spec>H 0-8/1 * * *
-H 22-23/1 * * *</spec>
-      <ignorePostCommitHooks>false</ignorePostCommitHooks>
-    </hudson.triggers.SCMTrigger>
   </triggers>
   <concurrentBuild>true</concurrentBuild>
   <customWorkspace>/afs/bb/proj/fpga/framework/CI_ws/OC_SNAP_IMG_matrix/${BRANCH}</customWorkspace>
@@ -825,12 +820,12 @@ echo &quot;`date` BUILD EXIT&quot;</script>
         <hudson.plugins.build__timeout.operations.FailOperation/>
       </operationList>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
-    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.9"/>
     <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.9">
       <template>#${BUILD_NUMBER} ${GIT_BRANCH}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
     </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.9"/>
   </buildWrappers>
   <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
     <runSequentially>false</runSequentially>
