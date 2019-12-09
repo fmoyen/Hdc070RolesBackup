@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
   <description>This test runs for now on tul4, but it can be moved to any other system. Cards are auto detected, tests are performed automatically. Problematic, could be that this must not run in parallel but wait for the adjacent test to complete.&#xd;
@@ -6,7 +6,7 @@
 We need libcxl installed properly to make this work. If we use the original GenWQE version of the card, the genese_card.ko driver must be installed and a proper udev rule should be installed too, to get user-space permission to use the card.</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.0">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
       <projectUrl>https://github.com/ibm-genwqe/genwqe-user/</projectUrl>
       <displayName></displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
@@ -20,7 +20,7 @@ We need libcxl installed properly to make this work. If we use the original GenW
       <paramsToUseForLimit></paramsToUseForLimit>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.5.1">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -49,6 +49,7 @@ We need libcxl installed properly to make this work. If we use the original GenW
         <parentCredentials>false</parentCredentials>
       </hudson.plugins.git.extensions.impl.SubmoduleOption>
       <hudson.plugins.git.extensions.impl.PruneStaleBranch/>
+      <hudson.plugins.git.extensions.impl.WipeWorkspace/>
     </extensions>
   </scm>
   <canRoam>true</canRoam>
@@ -136,12 +137,12 @@ EOF</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
-    <hudson.tasks.Mailer plugin="mailer@1.20">
+    <hudson.tasks.Mailer plugin="mailer@1.22">
       <recipients>haver@linux.vnet.ibm.com</recipients>
       <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>true</sendToIndividuals>
     </hudson.tasks.Mailer>
-    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.0">
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.29.3">
       <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
       <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
       <contextSource class="org.jenkinsci.plugins.github.status.sources.ManuallyEnteredCommitContextSource">
@@ -168,11 +169,11 @@ EOF</command>
       <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
       <errorHandlers/>
     </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
-    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.18">
       <baseUrl></baseUrl>
       <teamDomain>powercapi</teamDomain>
       <authToken>M0sWYNWoSxiFuBDbYuNaJG5y</authToken>
-      <authTokenCredentialId></authTokenCredentialId>
+      <tokenCredentialId></tokenCredentialId>
       <botUser>false</botUser>
       <room>#gzip_jenkins</room>
       <startNotification>true</startNotification>
@@ -189,16 +190,21 @@ EOF</command>
       <commitInfoChoice>NONE</commitInfoChoice>
       <includeCustomMessage>false</includeCustomMessage>
       <customMessage></customMessage>
+      <customMessageSuccess></customMessageSuccess>
+      <customMessageAborted></customMessageAborted>
+      <customMessageNotBuilt></customMessageNotBuilt>
+      <customMessageUnstable></customMessageUnstable>
+      <customMessageFailure></customMessageFailure>
     </jenkins.plugins.slack.SlackNotifier>
   </publishers>
   <buildWrappers>
-    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.18">
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.19">
       <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
         <timeoutMinutes>300</timeoutMinutes>
       </strategy>
       <operationList/>
     </hudson.plugins.build__timeout.BuildTimeoutWrapper>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.9">
       <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
