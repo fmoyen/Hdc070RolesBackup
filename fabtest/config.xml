@@ -180,18 +180,22 @@ echo &quot;#####################################&quot;
 #####################################
 # Getting back b_route_design.dcp CAPI1 files
 
-ToServer=marennes
-cards=&quot;ADKU3 AD8K5 N250S S121B&quot;
+#ToServer=marennes
+#cards=&quot;ADKU3 AD8K5 N250S S121B&quot;
 
-ssh $ToServer &quot;mkdir -p fabrice&quot;
+#ssh $ToServer &quot;mkdir -p fabrice&quot;
 
-for i in $cards;do
-  ls -la /afs/bb/proj/fpga/framework/cards/$i/current/b_route_design.dcp
-  ssh $ToServer &quot;mkdir fabrice/$i&quot;
-  scp /afs/bb/proj/fpga/framework/cards/$i/current/b_route_design.dcp $ToServer:./fabrice/$i
-  done
+#for i in $cards;do
+#  ls -la /afs/bb/proj/fpga/framework/cards/$i/current/b_route_design.dcp
+#  ssh $ToServer &quot;mkdir fabrice/$i&quot;
+#  scp /afs/bb/proj/fpga/framework/cards/$i/current/b_route_design.dcp $ToServer:./fabrice/$i
+#  done
 
-</command>
+##########################################
+# Investigating AFS configuration
+
+echo &quot;Xilinx root:&quot;
+ls -la /afs/bb/proj/fpga/xilinx</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
