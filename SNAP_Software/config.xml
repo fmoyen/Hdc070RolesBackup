@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version='1.1' encoding='UTF-8'?>
 <project>
   <actions/>
   <description>Quick build check on an old RHEL6.4 x86 installation. Using pslse libcxl to enable the Intel build.&#xd;
@@ -16,7 +16,7 @@ Contact: Frank Haverkamp &lt;haverkam@de.ibm.com&gt;</description>
         <artifactNumToKeep>-1</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
-    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.28.1">
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.3">
       <projectUrl>https://github.com/open-power/donut/</projectUrl>
       <displayName>donut</displayName>
     </com.coravy.hudson.plugins.github.GithubProjectProperty>
@@ -30,7 +30,7 @@ Contact: Frank Haverkamp &lt;haverkam@de.ibm.com&gt;</description>
       <paramsToUseForLimit></paramsToUseForLimit>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
   </properties>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.7.0">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -64,15 +64,7 @@ Contact: Frank Haverkamp &lt;haverkam@de.ibm.com&gt;</description>
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
-  <triggers>
-    <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.28.1">
-      <spec></spec>
-    </com.cloudbees.jenkins.GitHubPushTrigger>
-    <hudson.triggers.SCMTrigger>
-      <spec>H * * * *</spec>
-      <ignorePostCommitHooks>false</ignorePostCommitHooks>
-    </hudson.triggers.SCMTrigger>
-  </triggers>
+  <triggers/>
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
@@ -153,7 +145,7 @@ echo &quot;# End of File&quot;                &gt;&gt; $HOMEDIR/my_properties</c
       <defaultExcludes>true</defaultExcludes>
       <caseSensitive>true</caseSensitive>
     </hudson.tasks.ArtifactArchiver>
-    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.28.1">
+    <org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter plugin="github@1.29.3">
       <commitShaSource class="org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource"/>
       <reposSource class="org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource"/>
       <contextSource class="org.jenkinsci.plugins.github.status.sources.ManuallyEnteredCommitContextSource">
@@ -180,11 +172,11 @@ echo &quot;# End of File&quot;                &gt;&gt; $HOMEDIR/my_properties</c
       <statusBackrefSource class="org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource"/>
       <errorHandlers/>
     </org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter>
-    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.3">
+    <jenkins.plugins.slack.SlackNotifier plugin="slack@2.18">
       <baseUrl></baseUrl>
       <teamDomain>capi-snap</teamDomain>
       <authToken>rripgT5l6Skg2HVtvCKT5fdt</authToken>
-      <authTokenCredentialId></authTokenCredentialId>
+      <tokenCredentialId></tokenCredentialId>
       <botUser>false</botUser>
       <room>#snap_jenkins</room>
       <startNotification>true</startNotification>
@@ -201,6 +193,11 @@ echo &quot;# End of File&quot;                &gt;&gt; $HOMEDIR/my_properties</c
       <commitInfoChoice>AUTHORS_AND_TITLES</commitInfoChoice>
       <includeCustomMessage>false</includeCustomMessage>
       <customMessage></customMessage>
+      <customMessageSuccess></customMessageSuccess>
+      <customMessageAborted></customMessageAborted>
+      <customMessageNotBuilt></customMessageNotBuilt>
+      <customMessageUnstable></customMessageUnstable>
+      <customMessageFailure></customMessageFailure>
     </jenkins.plugins.slack.SlackNotifier>
     <hudson.plugins.parameterizedtrigger.BuildTrigger plugin="parameterized-trigger@2.35.2">
       <configs>
@@ -212,7 +209,7 @@ CONFIG=SNAP_Software
 USE_CARD=ALL</properties>
               <textParamValueOnNewLine>false</textParamValueOnNewLine>
             </hudson.plugins.parameterizedtrigger.PredefinedBuildParameters>
-            <hudson.plugins.git.GitRevisionBuildParameters plugin="git@3.7.0">
+            <hudson.plugins.git.GitRevisionBuildParameters plugin="git@3.9.3">
               <combineQueuedCommits>false</combineQueuedCommits>
             </hudson.plugins.git.GitRevisionBuildParameters>
           </configs>
@@ -225,7 +222,7 @@ USE_CARD=ALL</properties>
     </hudson.plugins.parameterizedtrigger.BuildTrigger>
   </publishers>
   <buildWrappers>
-    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.7">
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@1.6.9">
       <template>${PROJECT_NAME} ${GIT_BRANCH} #${BUILD_NUMBER}</template>
       <runAtStart>true</runAtStart>
       <runAtEnd>true</runAtEnd>
