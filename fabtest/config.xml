@@ -52,6 +52,7 @@ echo; echo -e &quot;Where ?: \c&quot;; pwd
 echo; echo &quot;Homedir:&quot;
 cd ~
 pwd
+fs lq
 
 #echo; echo &quot;.ssh ?:&quot;
 #ls -la .ssh
@@ -195,7 +196,18 @@ echo &quot;#####################################&quot;
 # Investigating AFS configuration
 
 echo &quot;Xilinx root:&quot;
-ls -la /afs/bb/proj/fpga/xilinx</command>
+echo &quot;/afs/bb/proj/fpga/xilinx&quot;
+cd /afs/bb/proj/fpga/xilinx
+fs lq
+ls -la
+
+echo
+
+echo &quot;workspaces root:&quot;
+echo &quot;/afs/bb/proj/fpga/framework/CI_ws&quot;
+cd /afs/bb/proj/fpga/framework/CI_ws
+fs lq
+ls -la</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
