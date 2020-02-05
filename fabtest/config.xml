@@ -200,6 +200,8 @@ echo &quot;/afs/bb/proj/fpga/xilinx&quot;
 cd /afs/bb/proj/fpga/xilinx
 fs lq
 ls -la
+echo &quot;Vivado:&quot;
+ls -la Vivado
 
 echo
 
@@ -207,7 +209,10 @@ echo &quot;workspaces root:&quot;
 echo &quot;/afs/bb/proj/fpga/framework/CI_ws&quot;
 cd /afs/bb/proj/fpga/framework/CI_ws
 fs lq
-ls -la</command>
+ls -la
+echo &quot;Volumes:&quot;
+ls -la vol*
+fs lq vol*</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
