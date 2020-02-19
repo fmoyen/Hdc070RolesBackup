@@ -64,7 +64,7 @@ fs lq
 #echo; echo &quot;authorized_keys:&quot;
 #cat .ssh/authorized_keys
 
-echo &quot;#####################################&quot;
+
 
 #######################################
 # Jobs investigation &amp; backup
@@ -195,22 +195,36 @@ echo &quot;#####################################&quot;
 ##########################################
 # Investigating AFS configuration
 
+echo
+echo &quot;################################################&quot;
+echo
+
 echo &quot;Xilinx root:&quot;
 echo &quot;/afs/bb/proj/fpga/xilinx&quot;
 cd /afs/bb/proj/fpga/xilinx
+echo;echo &quot;fs listacl:&quot;
+fs listacl .
+echo;echo &quot;fs lq:&quot;
 fs lq
+echo;echo &quot;ls -la:&quot;
 ls -la
-echo &quot;Vivado:&quot;
+echo;echo &quot;ls -la Vivado:&quot;
 ls -la Vivado
 
+echo
+echo &quot;################################################&quot;
 echo
 
 echo &quot;workspaces root:&quot;
 echo &quot;/afs/bb/proj/fpga/framework/CI_ws&quot;
 cd /afs/bb/proj/fpga/framework/CI_ws
+echo;echo &quot;fs listacl:&quot;
+fs listacl .
+echo;echo &quot;fs lq:&quot;
 fs lq
+echo; echo &quot;ls -la:&quot;
 ls -la
-echo &quot;Volumes:&quot;
+echo;echo &quot;ls -la vol\*:&quot;
 ls -la vol*
 fs lq vol*</command>
     </hudson.tasks.Shell>
