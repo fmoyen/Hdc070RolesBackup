@@ -200,33 +200,37 @@ echo &quot;################################################&quot;
 echo
 
 echo &quot;Xilinx root:&quot;
-echo &quot;/afs/bb/proj/fpga/xilinx&quot;
-cd /afs/bb/proj/fpga/xilinx
+DIR=/afs/bb/proj/fpga/xilinx
+echo $DIR
+cd $DIR
 echo;echo &quot;fs listacl:&quot;
-fs listacl .
+fs listacl $DIR
 echo;echo &quot;fs lq:&quot;
-fs lq
+fs lq $DIR
 echo;echo &quot;ls -la:&quot;
-ls -la
+ls -la $DIR
 echo;echo &quot;ls -la Vivado:&quot;
-ls -la Vivado
+ls -la $DIR/Vivado
 
 echo
 echo &quot;################################################&quot;
 echo
 
 echo &quot;workspaces root:&quot;
-echo &quot;/afs/bb/proj/fpga/framework/CI_ws&quot;
-cd /afs/bb/proj/fpga/framework/CI_ws
+DIR=/afs/bb/proj/fpga/framework/CI_ws
+echo $DIR
+cd $DIR
 echo;echo &quot;fs listacl:&quot;
-fs listacl .
+fs listacl $DIR
+fs listacl $DIR/*
 echo;echo &quot;fs lq:&quot;
-fs lq
+fs lq $DIR
 echo; echo &quot;ls -la:&quot;
-ls -la
-echo;echo &quot;ls -la vol\*:&quot;
-ls -la vol*
-fs lq vol*</command>
+ls -la $DIR
+echo;echo &quot;fs lq &amp;&amp; ls -la vol\*:&quot;
+fs lq $DIR/vol*
+ls -la $DIR/vol*
+</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
